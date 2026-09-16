@@ -32,11 +32,14 @@ class FakeApi:
 
     def model_info(self, model_id, files_metadata=False):
         assert model_id == "org/model"
-        assert files_metadata is False
+        assert isinstance(files_metadata, bool)
         return FakeModel()
 
 
 def fake_snapshot_download(**kwargs):
+    destination = kwargs["local_dir"]
+    destination.mkdir(parents=True, exist_ok=True)
+    (destination / "config.json").write_text("{}\n")
     return str(kwargs["local_dir"])
 
 
@@ -47,9 +50,13 @@ def test_discover_and_mirror(monkeypatch, tmp_path):
     metadata = mirror("org/model", "mit", tmp_path, False)
     assert metadata["revision"] == "abc123"
     assert metadata["downloaded_weights"] is False
+    from decillion.vault import WeightVault
+
+    WeightVault.initialize(tmp_path, reserve_bytes=0)
     downloaded = mirror("org/model", "mit", tmp_path, True)
     assert downloaded["downloaded_weights"] is True
     assert "org/model" in downloaded["destination"]
+    assert downloaded["verified_files"] == 1
 
 
 def test_hub_dependency_message(monkeypatch):
