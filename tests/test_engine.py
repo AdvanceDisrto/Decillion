@@ -40,6 +40,10 @@ def test_tampered_receipt_fails(engine):
     receipt = engine.upload("wallet-1", "a.txt", b"secret").receipt
     with pytest.raises(Exception):
         engine.download(replace(receipt, plaintext_size=999), owner="wallet-1", filename="a.txt")
+    with pytest.raises(IntegrityError):
+        engine.download(
+            replace(receipt, signature="not-base64!"), owner="wallet-1", filename="a.txt"
+        )
 
 
 def test_tampered_ciphertext_fails(tmp_path):

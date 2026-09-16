@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import base64
+import binascii
 import hashlib
 import json
 import os
@@ -12,8 +13,11 @@ from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 
+from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey, Ed25519PublicKey
 from cryptography.hazmat.primitives.serialization import Encoding, NoEncryption, PrivateFormat
+
+from .errors import IntegrityError
 
 
 def canonical_json(value: dict) -> bytes:
@@ -105,7 +109,11 @@ class ReceiptSigner:
 
 
 def verify_receipt(receipt: Receipt, public_key: Ed25519PublicKey) -> None:
-    public_key.verify(base64.urlsafe_b64decode(receipt.signature), receipt.digest())
+    try:
+        signature = base64.b64decode(receipt.signature, altchars=b"-_", validate=True)
+        public_key.verify(signature, receipt.digest())
+    except (binascii.Error, InvalidSignature, ValueError) as exc:
+        raise IntegrityError("receipt signature verification failed") from exc
 
 
 def merkle_root(receipts: Iterable[Receipt]) -> str:

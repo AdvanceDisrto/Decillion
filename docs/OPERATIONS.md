@@ -5,7 +5,7 @@
 | Variable | Purpose |
 |---|---|
 | `DECILLION_MASTER_KEY` | URL-safe base64 encoded 32-byte local KEK |
-| `DECILLION_API_TOKENS` | Comma-separated API tokens |
+| `DECILLION_API_PRINCIPALS` | JSON object mapping API tokens to owner IDs |
 | `DECILLION_DATA_DIR` | External state directory; defaults to `var` |
 | `DECILLION_ENV` | Set `production` to disable the development token |
 | `DECILLION_REQUIRE_ATTESTATION` | Set `true` to deny unwrap without evidence |

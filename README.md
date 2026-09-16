@@ -30,11 +30,11 @@ Upload and retrieve:
 
 ```bash
 curl -H 'Authorization: Bearer development-token' \
-  -F 'file=@README.md' -F 'wallet=user-001' \
+  -F 'file=@README.md' \
   http://127.0.0.1:8000/v1/objects
 ```
 
-Set `DECILLION_API_TOKENS` to a comma-separated list of strong tokens before starting the API. The development token is accepted only when `DECILLION_ENV=development`.
+Set `DECILLION_API_PRINCIPALS` to a JSON object mapping strong tokens to owner IDs before starting the API, for example `{"strong-token":"wallet-001"}`. The development token is accepted only when `DECILLION_ENV=development` and is bound to `development-owner`.
 
 ## Model registry and import
 
