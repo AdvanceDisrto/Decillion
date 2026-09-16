@@ -49,6 +49,8 @@ decillion-models mirror deepseek-ai/DeepSeek-R1 \
   --license mit --include-weights --destination /mnt/model-vault
 ```
 
+Initialize the external destination first with `decillion-models vault-init --destination /mnt/model-vault`. The vault provides download locks, atomic publication, capacity enforcement, immutable revision directories, and full SHA-256 file inventories. Windows users can initialize the `E:` drive with `scripts/Initialize-WeightVault.ps1`. See [WEIGHT_VAULT.md](docs/WEIGHT_VAULT.md).
+
 “Open weight” is not synonymous with MIT. Apache-2.0, Llama Community, modified MIT, research-only, and custom licenses require their own policy decision. The importer fails closed on missing or mismatched license metadata.
 
 ## Development
@@ -57,6 +59,7 @@ decillion-models mirror deepseek-ai/DeepSeek-R1 \
 python -m pip install -e '.[dev]'
 pytest
 python scripts/smoke.py
+python scripts/smoke_vault.py
 python scripts/verify_repo.py
 ```
 
