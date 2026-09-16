@@ -27,6 +27,8 @@ Hugging Face discovery and mirroring are deliberately separate from the storage 
 
 The source repository never becomes a weight warehouse.
 
+Downloaded snapshots are committed to an external `WeightVault`. The vault separates staging from immutable revision paths, enforces capacity policy, and generates a SHA-256 inventory before atomic publication. Storage-device encryption and backup remain infrastructure responsibilities.
+
 ## Scale strategy
 
 Decillion-scale *operations* are addressed through horizontal partitioning, aggregation, tiered retention, and cryptographic commitments. It is physically infeasible for today's infrastructure to preserve `10^33` independent 32-byte receipts. Merkle aggregation compresses verification state while underlying detailed receipts follow contractual retention rules.

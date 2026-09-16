@@ -25,4 +25,5 @@ jobs:
       - run: ruff check .
       - run: pytest --cov=decillion --cov-report=term-missing --cov-fail-under=85
       - run: python scripts/smoke.py
+      - run: python scripts/smoke_vault.py
       - run: python scripts/verify_repo.py
