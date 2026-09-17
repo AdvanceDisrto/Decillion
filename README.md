@@ -53,6 +53,43 @@ Initialize the external destination first with `decillion-models vault-init --de
 
 “Open weight” is not synonymous with MIT. Apache-2.0, Llama Community, modified MIT, research-only, and custom licenses require their own policy decision. The importer fails closed on missing or mismatched license metadata.
 
+## Encrypted sharded weight vault
+
+The external-drive vault accepts `.safetensors`, `.pt`, and `.bin` files. It splits them into 1 MiB shards, encrypts every shard with AES-256-GCM and fresh nonces, wraps the model DEK under a passphrase-derived vault key, and stores ciphertext by SHA-256. A Merkle root identifies the encrypted shard set. No plaintext DEK is returned, logged, or placed in a manifest.
+
+```bash
+export IZETTA_VAULT_PASSPHRASE='use-a-long-unique-secret'
+decillion-vault init --vault /mnt/external/decillion-vault
+decillion-vault add --vault /mnt/external/decillion-vault \
+  --file /mnt/downloads/model.safetensors \
+  --model-id org/model --source hf:org/model --license Apache-2.0
+decillion-vault verify --vault /mnt/external/decillion-vault
+decillion-vault smoke --vault /mnt/external/vault-smoke
+```
+
+`uvicorn vault.server:app --host 127.0.0.1 --port 8100` exposes signed, ACL-controlled shard reads. Set `IZETTA_VAULT` to the drive path first. Keep the default loopback bind unless the service is placed behind TLS, a VPN, or another authenticated encrypted tunnel.
+
+## Telepath peer transfer
+
+Telepath moves real plaintext shards between authorized peers after opening a signed, model-bound, TTL- and budget-limited session. It includes replay prevention, a size-bounded RAM cache, tier accounting, peer observations, transfer receipts, and whole-file SHA-256 verification after atomic reassembly.
+
+```bash
+# End-to-end local TCP test; no GPU or cloud account required
+decillion-telepath vault-smoke --workdir /mnt/external/telepath-smoke
+
+# Vault host (Pi or PC)
+decillion-telepath serve --host 127.0.0.1 --port 7788 \
+  --name vault-node --vault /mnt/external/decillion-vault
+
+# Authorized peer
+decillion-telepath pull-model --peer-host 127.0.0.1 --peer-port 7788 \
+  --model-id org/model --dest /mnt/external/pulled
+```
+
+Ed25519 authenticates messages but does not encrypt the TCP payload. Plain TCP is appropriate only on loopback or an already encrypted trusted network. For two-machine operation, use TLS termination, WireGuard, or an equivalent encrypted tunnel. This repository contains no Vercel configuration and performs no cloud deployment.
+
+The optional `decillion-accelerators` command detects CUDA, MPS, DirectML, TPU, and CPU at runtime. PyTorch is not a required dependency; CPU remains available on a Pi or PC without a GPU.
+
 ## Development
 
 ```bash

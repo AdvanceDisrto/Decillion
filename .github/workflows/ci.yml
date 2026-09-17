@@ -11,6 +11,8 @@ permissions:
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      IZETTA_VAULT_PASSPHRASE: github-actions-smoke-test-only
     strategy:
       matrix:
         python-version: ["3.11", "3.12", "3.13"]
@@ -26,4 +28,7 @@ jobs:
       - run: pytest --cov=decillion --cov-report=term-missing --cov-fail-under=85
       - run: python scripts/smoke.py
       - run: python scripts/smoke_vault.py
+      - run: python -m vault.cli smoke --vault "${RUNNER_TEMP}/vault-smoke"
+      - run: python -m telepath.cli vault-smoke --workdir "${RUNNER_TEMP}/telepath-smoke"
+      - run: python -m matrix.accelerator
       - run: python scripts/verify_repo.py
