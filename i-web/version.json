@@ -1,5 +1,5 @@
 {
-  "version": "2026.10.15.4",
+  "version": "2026.10.15.5",
   "released_at": "2026-10-15",
-  "notes": "Buddy i animated glass companion, wave, greeting, voice, listening and responsive PWA"
+  "notes": "Generated Buddy i GLB 3D model viewer, model-state animation hooks, iModels registry, responsive holographic PWA"
 }
