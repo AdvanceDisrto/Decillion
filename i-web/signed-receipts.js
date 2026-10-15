@@ -31,6 +31,8 @@ function show(r){
  $('receiptSave').onclick=()=>{const blob=new Blob([JSON.stringify(r,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='i-signed-'+r.id.slice(0,14)+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),2000)};
  $('receiptShare').onclick=async()=>{if(navigator.share){try{await navigator.share({title:'i™ signed receipt',text:JSON.stringify(r)})}catch{}}};
 }
+const localHandlers={verify:$('receiptVerify')?.onclick,save:$('receiptSave')?.onclick,share:$('receiptShare')?.onclick};
+window.addEventListener('i-local-receipt-open',()=>{for(const [name,el] of [['verify','receiptVerify'],['save','receiptSave'],['share','receiptShare']]){if($(el))$(el).onclick=localHandlers[name]}});
 window.showSignedReceipt=show;
 const holder=document.getElementById('signedReceiptList');
 function render(){
