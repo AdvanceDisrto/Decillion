@@ -1,0 +1,22 @@
+/* i™ live GLB character — replaces CSS mascot with real generated model. */
+.buddy-world{min-height:480px;background:radial-gradient(ellipse at 52% 94%,#31d5b34a,transparent 59%),linear-gradient(143deg,#063b3b,#09232a 54%,#020d13);overflow:hidden}
+.buddy-world::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(100deg,transparent 14%,#71ffe80c 48%,transparent 75%);z-index:1}
+#buddyCharacter{display:none!important}
+#buddy3d{position:absolute;inset:0;z-index:2;display:flex;align-items:center;justify-content:center;pointer-events:none;overflow:hidden}
+#buddy3d model-viewer{display:block;width:100%;height:100%;min-height:420px;background:transparent;--poster-color:transparent;pointer-events:auto;transform-origin:bottom center;filter:drop-shadow(0 0 24px #21ffcb60)}
+#buddy3d model-viewer::part(default-progress-bar){background:#59ffd3}
+#buddy3d img{width:min(370px,80%);height:auto;max-height:95%;object-fit:contain;filter:drop-shadow(0 0 28px #09edaa70)}
+#buddy3d .buddy3d-poster{display:flex;justify-content:center;align-items:center;width:100%;height:100%}
+#buddy3d.loaded .buddy3d-poster{display:none}
+#buddy3d .buddy3d-model{opacity:0;position:absolute;inset:0;transition:opacity .35s ease}
+#buddy3d.loaded .buddy3d-model{opacity:1}
+.buddy-world[data-buddy-mode="walking"] #buddy3d{animation:buddy-model-step 1.3s ease-out}
+.buddy-world[data-buddy-mode="talking"] #buddy3d{animation:buddy-model-talk .4s ease-in-out infinite alternate}
+.buddy-world[data-buddy-mode="listening"] #buddy3d{filter:drop-shadow(0 0 28px #15caffbb)}
+.buddy-world[data-buddy-mode="thinking"] #buddy3d{filter:drop-shadow(0 0 24px #8c80ffbb)}
+#buddy3d-status{position:absolute;right:14px;top:150px;z-index:4;color:#d4fff6;background:#062e2abf;border:1px solid #75ffe15e;border-radius:12px;padding:6px 10px;font-size:12px}
+.buddy-intro{z-index:5}.buddy-actions{z-index:6}
+@keyframes buddy-model-step{from{transform:translateX(-28%) scale(.93);opacity:.5}60%{transform:translateX(3%) rotate(2deg)}to{transform:translateX(0) scale(1);opacity:1}}
+@keyframes buddy-model-talk{from{transform:translateY(0)}to{transform:translateY(-5px)}}
+@media(max-width:520px){.buddy-world{min-height:435px}#buddy3d-status{top:133px;right:9px;max-width:135px}#buddy3d img{max-height:75%}}
+@media(prefers-reduced-motion:reduce){#buddy3d,.buddy-world[data-buddy-mode="talking"] #buddy3d,.buddy-world[data-buddy-mode="walking"] #buddy3d{animation:none!important}}
