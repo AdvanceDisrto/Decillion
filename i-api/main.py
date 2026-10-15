@@ -1,0 +1,86 @@
+"""Buddy receipt API. Requires externally configured auth, signing and persistence."""
+import base64
+import hashlib
+import json
+import os
+import uuid
+from datetime import datetime, timezone
+from typing import Any
+import httpx
+import jwt
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+from fastapi import FastAPI, HTTPException, Header
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel, Field
+
+app = FastAPI(title="i THE ONE Buddy Receipts", version="0.3.0")
+origin = os.environ.get("PUBLIC_ORIGIN", "").rstrip("/")
+app.add_middleware(CORSMiddleware, allow_origins=[origin] if origin else [], allow_credentials=False, allow_methods=["GET","POST"], allow_headers=["Authorization","Content-Type"])
+PROJECT_URL = os.environ.get("SUPABASE_URL", "").rstrip("/")
+ANON_KEY = os.environ.get("SUPABASE_PUBLISHABLE_KEY", "")
+SIGNING_KEY = os.environ.get("RECEIPT_SIGNING_PRIVATE_KEY_PEM", "")
+MODEL_URL = os.environ.get("BUDDY_MODEL_URL", "")
+MODEL_TOKEN = os.environ.get("BUDDY_MODEL_TOKEN", "")
+JWKS_URL = os.environ.get("SUPABASE_JWKS_URL", (PROJECT_URL+"/auth/v1/.well-known/jwks.json") if PROJECT_URL else "")
+def ready():
+    return all([PROJECT_URL, ANON_KEY, SIGNING_KEY, JWKS_URL])
+def signing_key():
+    try:
+        key = serialization.load_pem_private_key(SIGNING_KEY.encode(), password=None)
+        if not isinstance(key, Ed25519PrivateKey): raise ValueError("Not Ed25519")
+        return key
+    except Exception:
+        raise HTTPException(503, "Receipt signing key not configured correctly")
+def canonical(value):
+    return json.dumps(value,sort_keys=True,separators=(",",":"),ensure_ascii=False).encode()
+async def user_id(auth: str):
+    if not auth.startswith("Bearer "): raise HTTPException(401,"Bearer token required")
+    token=auth[7:]
+    if not ready(): raise HTTPException(503,"Auth/storage/signing not configured")
+    try:
+        jwks=jwt.PyJWKClient(JWKS_URL)
+        key=jwks.get_signing_key_from_jwt(token).key
+        claims=jwt.decode(token,key,algorithms=["RS256","ES256"],audience="authenticated",issuer=PROJECT_URL+"/auth/v1",options={"require":["exp","sub","aud"]})
+        if claims.get("is_anonymous"): raise HTTPException(403,"Anonymous sessions not supported")
+        return claims["sub"],token
+    except HTTPException: raise
+    except Exception: raise HTTPException(401,"Invalid authentication token")
+class Action(BaseModel):
+    request: str = Field(min_length=1,max_length=4000)
+    parent_id: str | None = None
+async def persist(row:dict, token:str):
+    headers={"apikey":ANON_KEY,"Authorization":"Bearer "+token,"Content-Type":"application/json","Prefer":"return=representation"}
+    async with httpx.AsyncClient(timeout=12) as client:
+        response=await client.post(PROJECT_URL+"/rest/v1/i_receipts",headers=headers,json=row)
+    if response.status_code not in (200,201): raise HTTPException(503,"Receipt persistence unavailable")
+@app.get("/health")
+async def health():
+    return {"status":"ok","storage_auth_signing_configured":ready(),"model_configured":bool(MODEL_URL and MODEL_TOKEN)}
+@app.post("/v1/actions")
+async def action(body:Action, authorization:str=Header(default="")):
+    uid,token=await user_id(authorization)
+    if not MODEL_URL or not MODEL_TOKEN: raise HTTPException(503,"Buddy model backend not configured")
+    async with httpx.AsyncClient(timeout=45) as client:
+        try:
+            response=await client.post(MODEL_URL,headers={"Authorization":"Bearer "+MODEL_TOKEN},json={"message":body.request,"user_id":uid})
+            response.raise_for_status()
+            result=response.json()
+        except Exception: raise HTTPException(502,"Buddy model unavailable")
+    answer=result.get("answer")
+    if not isinstance(answer,str) or not answer: raise HTTPException(502,"Buddy model returned no answer")
+    payload={"protocol":"i-receipt/0.3","action_id":str(uuid.uuid4()),"user_id":uid,"request":body.request,"result":answer,"created_at":datetime.now(timezone.utc).isoformat(),"parent_id":body.parent_id,"execution":{"kind":"model-response","status":"completed","model_attestation":"not-provided"}}
+    digest=hashlib.sha256(canonical(payload)).hexdigest()
+    key=signing_key()
+    signature=base64.b64encode(key.sign(bytes.fromhex(digest))).decode()
+    receipt={"id":digest,"body":payload,"signature":signature,"signature_alg":"Ed25519","public_key":base64.b64encode(key.public_key().public_bytes(encoding=serialization.Encoding.Raw,format=serialization.PublicFormat.Raw)).decode()}
+    await persist({"id":digest,"user_id":uid,"receipt":receipt},token)
+    return {"answer":answer,"receipt":receipt}
+@app.get("/v1/receipts")
+async def receipts(authorization:str=Header(default="")):
+    uid,token=await user_id(authorization)
+    headers={"apikey":ANON_KEY,"Authorization":"Bearer "+token}
+    async with httpx.AsyncClient(timeout=12) as client:
+        response=await client.get(PROJECT_URL+"/rest/v1/i_receipts",headers=headers,params={"select":"receipt,created_at","user_id":"eq."+uid,"order":"created_at.desc","limit":"100"})
+    if response.status_code!=200: raise HTTPException(503,"Receipt storage unavailable")
+    return response.json()
