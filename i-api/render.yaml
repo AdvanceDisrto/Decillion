@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: i-the-one-buddy-api
+    runtime: python
+    plan: free
+    rootDir: i-api
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_PUBLISHABLE_KEY
+        sync: false
+      - key: SUPABASE_JWKS_URL
+        sync: false
+      - key: RECEIPT_SIGNING_PRIVATE_KEY_PEM
+        sync: false
+      - key: BUDDY_MODEL_URL
+        sync: false
+      - key: BUDDY_MODEL_TOKEN
+        sync: false
+      - key: PUBLIC_ORIGIN
+        value: https://igptm.com
