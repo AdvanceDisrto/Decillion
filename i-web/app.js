@@ -4,9 +4,9 @@ $('receiptClose').onclick=closeReceipt;$('receiptStage').addEventListener('click
 /* i™ Live Update Mode v1: version polling + safe service worker activation. */
 (()=>{
 const UPDATE_PREF='i-auto-update-v1', VERSION_URL='./version.json';
-let registration=null,waiting=false,updating=false,lastVersion='2026.10.15.1';
+let registration=null,waiting=false,updating=false,lastVersion='2026.10.15.2';
 const banner=$('updateBanner'),info=$('updateInfo'),pref=$('autoUpdate');
-pref.checked=localStorage.getItem(UPDATE_PREF)!=='off';
+localStorage.setItem('i-version-last-seen',lastVersion);pref.checked=localStorage.getItem(UPDATE_PREF)!=='off';
 pref.onchange=()=>{localStorage.setItem(UPDATE_PREF,pref.checked?'on':'off');if(pref.checked)checkUpdates(true)};
 const showUpdate=()=>{waiting=true;banner.classList.add('show');$('updateState').textContent='🧾 New i™ version is ready to install';info.textContent='Update available · Your local receipts remain on this device'};
 const checkUpdates=async(manual=false)=>{
