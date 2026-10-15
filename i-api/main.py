@@ -13,8 +13,10 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 from fastapi import FastAPI, HTTPException, Header
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
+from imodels import router as model_router, complete as imodel_complete, configured as imodel_configured
 
-app = FastAPI(title="i THE ONE Buddy Receipts", version="0.3.0")
+app = FastAPI(title="i THE ONE Buddy Receipts", version="0.4.0")
+app.include_router(model_router)
 origin = os.environ.get("PUBLIC_ORIGIN", "").rstrip("/")
 app.add_middleware(CORSMiddleware, allow_origins=[origin] if origin else [], allow_credentials=False, allow_methods=["GET","POST"], allow_headers=["Authorization","Content-Type"])
 PROJECT_URL = os.environ.get("SUPABASE_URL", "").rstrip("/")
@@ -49,6 +51,7 @@ async def user_id(auth: str):
 class Action(BaseModel):
     request: str = Field(min_length=1,max_length=4000)
     parent_id: str | None = None
+    model: str = Field(default="buddy", pattern="^(buddy|the-one)$")
 async def persist(row:dict, token:str):
     headers={"apikey":ANON_KEY,"Authorization":"Bearer "+token,"Content-Type":"application/json","Prefer":"return=representation"}
     async with httpx.AsyncClient(timeout=12) as client:
@@ -56,20 +59,29 @@ async def persist(row:dict, token:str):
     if response.status_code not in (200,201): raise HTTPException(503,"Receipt persistence unavailable")
 @app.get("/health")
 async def health():
-    return {"status":"ok","storage_auth_signing_configured":ready(),"model_configured":bool(MODEL_URL and MODEL_TOKEN)}
+    return {"status":"ok","storage_auth_signing_configured":ready(),"model_configured":bool((MODEL_URL and MODEL_TOKEN) or imodel_configured("buddy") or imodel_configured("the-one"))}
 @app.post("/v1/actions")
 async def action(body:Action, authorization:str=Header(default="")):
     uid,token=await user_id(authorization)
-    if not MODEL_URL or not MODEL_TOKEN: raise HTTPException(503,"Buddy model backend not configured")
-    async with httpx.AsyncClient(timeout=45) as client:
-        try:
-            response=await client.post(MODEL_URL,headers={"Authorization":"Bearer "+MODEL_TOKEN},json={"message":body.request,"user_id":uid})
-            response.raise_for_status()
-            result=response.json()
-        except Exception: raise HTTPException(502,"Buddy model unavailable")
-    answer=result.get("answer")
-    if not isinstance(answer,str) or not answer: raise HTTPException(502,"Buddy model returned no answer")
-    payload={"protocol":"i-receipt/0.3","action_id":str(uuid.uuid4()),"user_id":uid,"request":body.request,"result":answer,"created_at":datetime.now(timezone.utc).isoformat(),"parent_id":body.parent_id,"execution":{"kind":"model-response","status":"completed","model_attestation":"not-provided"}}
+    # Prefer verified-in-request native inference adapter when configured.
+    # Legacy Buddy adapter is retained for previously deployed integrations.
+    if imodel_configured(body.model):
+        answer,actual_model=await imodel_complete(body.model,body.request)
+    elif body.model=="buddy" and MODEL_URL and MODEL_TOKEN:
+        async with httpx.AsyncClient(timeout=45) as client:
+            try:
+                response=await client.post(MODEL_URL,headers={"Authorization":"Bearer "+MODEL_TOKEN},json={"message":body.request,"user_id":uid})
+                response.raise_for_status()
+                result=response.json()
+            except Exception:
+                raise HTTPException(502,"Buddy model unavailable")
+        answer=result.get("answer")
+        actual_model=result.get("model_id","legacy-adapter/unspecified")
+        if not isinstance(answer,str) or not answer:
+            raise HTTPException(502,"Buddy model returned no answer")
+    else:
+        raise HTTPException(503,"Selected iModels inference endpoint has not been configured")
+    payload={"protocol":"i-receipt/0.3","action_id":str(uuid.uuid4()),"user_id":uid,"request":body.request,"result":answer,"created_at":datetime.now(timezone.utc).isoformat(),"parent_id":body.parent_id,"execution":{"kind":"model-response","status":"completed","model_attestation":"inference-response-only; native-weights-unverified","model_id":actual_model}}
     digest=hashlib.sha256(canonical(payload)).hexdigest()
     key=signing_key()
     signature=base64.b64encode(key.sign(bytes.fromhex(digest))).decode()
@@ -84,3 +96,10 @@ async def receipts(authorization:str=Header(default="")):
         response=await client.get(PROJECT_URL+"/rest/v1/i_receipts",headers=headers,params={"select":"receipt,created_at","user_id":"eq."+uid,"order":"created_at.desc","limit":"100"})
     if response.status_code!=200: raise HTTPException(503,"Receipt storage unavailable")
     return response.json()
+
+@app.post("/v1/models/{model_name}/generate")
+async def generate_model(model_name: str, body: Action, authorization: str=Header(default="")):
+    if model_name not in {"buddy","the-one"}:
+        raise HTTPException(404,"Unknown model")
+    body.model=model_name
+    return await action(body, authorization)
