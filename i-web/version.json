@@ -1,5 +1,5 @@
 {
-  "version": "2026.10.15.6",
+  "version": "2026.10.15.7",
   "released_at": "2026-10-15",
-  "notes": "3D Buddy, native model registry, signed Buddy receipt eject/verify/store, safer update prompts"
+  "notes": "Select Buddy Native or THE ONE, browser GLB companion, signed receipts and verified model-state gateway"
 }
