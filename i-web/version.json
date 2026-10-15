@@ -1,5 +1,5 @@
 {
-  "version": "2026.10.15.2",
+  "version": "2026.10.15.3",
   "released_at": "2026-10-15",
-  "notes": "Live Update Mode with update button, version checks and controlled service-worker upgrades"
+  "notes": "Free account UI, optional authenticated Buddy API, local-first creator feed and live updates"
 }
