@@ -4,7 +4,7 @@ $('receiptClose').onclick=closeReceipt;$('receiptStage').addEventListener('click
 /* i™ Live Update Mode v1: version polling + safe service worker activation. */
 (()=>{
 const UPDATE_PREF='i-auto-update-v1', VERSION_URL='./version.json';
-let registration=null,waiting=false,updating=false,lastVersion='2026.10.15.5';
+let registration=null,waiting=false,updating=false,lastVersion='2026.10.15.6';
 const banner=$('updateBanner'),info=$('updateInfo'),pref=$('autoUpdate');
 localStorage.setItem('i-version-last-seen',lastVersion);pref.checked=localStorage.getItem(UPDATE_PREF)!=='off';
 pref.onchange=()=>{localStorage.setItem(UPDATE_PREF,pref.checked?'on':'off');if(pref.checked)checkUpdates(true)};
@@ -77,7 +77,7 @@ window.buddyRemote=async(q)=>{
  try{
   const res=await fetch(cfg.buddyApiUrl.replace(/\/$/,'')+'/v1/actions',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({request:q})});
   if(!res.ok){notice('Buddy API unavailable ('+res.status+')');return null}
-  const data=await res.json();if(data.receipt){notice('Signed receipt saved remotely · '+data.receipt.id.slice(0,12))}
+  const data=await res.json();if(data.receipt){window.showSignedReceipt?.(data.receipt);notice('Signed receipt saved · '+data.receipt.id.slice(0,12))}
   return typeof data.answer==='string'?data.answer:null
  }catch{return null}
 };
