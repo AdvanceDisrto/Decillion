@@ -20,3 +20,19 @@
 @keyframes buddy-model-talk{from{transform:translateY(0)}to{transform:translateY(-5px)}}
 @media(max-width:520px){.buddy-world{min-height:435px}#buddy3d-status{top:133px;right:9px;max-width:135px}#buddy3d img{max-height:75%}}
 @media(prefers-reduced-motion:reduce){#buddy3d,.buddy-world[data-buddy-mode="talking"] #buddy3d,.buddy-world[data-buddy-mode="walking"] #buddy3d{animation:none!important}}
+
+/* Desktop holographic dashboard composition */
+body{background:radial-gradient(circle at 68% 22%,#14555c,transparent 47%),radial-gradient(circle at 12% 72%,#053b34,transparent 45%),#041519}
+.wrap{max-width:1380px;width:100%;padding:18px clamp(12px,3vw,45px) 110px}
+#buddy>.glass{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(320px,.65fr);gap:16px;align-items:start;border-color:#74ffcb72;box-shadow:0 25px 80px #0007,inset 0 1px 16px #7fffd01a}
+#buddy>.glass>b{grid-column:1 / -1;font-size:18px;letter-spacing:.04em}
+#buddy>.glass>.buddy-world{grid-column:1;grid-row:2 / 5;min-height:610px;margin:0}
+#buddy>.glass>.messages{grid-column:2;min-height:350px;max-height:450px;background:#082e3194;border:1px solid #83ffe060;border-radius:19px;padding:12px;backdrop-filter:blur(16px)}
+#buddy>.glass>.compose{grid-column:2}
+#buddy>.glass>p.fine{grid-column:2}
+#buddy .hero{padding:10px 8px 18px}#buddy .hero .orb{display:none}
+#buddy .hero h1{font-size:clamp(26px,4.5vw,52px)}#buddy3d img{width:min(495px,88%);max-height:85%}
+#updateBanner.show{max-width:380px;left:auto;right:14px;bottom:85px;padding:9px 11px;gap:8px;font-size:12px;opacity:.97}
+#updateBanner button{min-width:0;font-size:12px;padding:7px 9px}
+@media(max-width:850px){#buddy>.glass{display:block}#buddy>.glass>.buddy-world{min-height:475px;margin:12px 0}#buddy>.glass>.messages{min-height:130px;max-height:240px}#buddy>.glass>.compose{margin-top:10px}}
+@media(max-width:550px){.wrap{padding-left:9px;padding-right:9px}#buddy>.glass{padding:12px;border-radius:19px}#buddy>.glass>.buddy-world{min-height:440px}#buddy3d img{max-height:73%}#updateBanner.show{bottom:84px;max-width:min(330px,92vw)}nav{overflow-x:auto;justify-content:flex-start}nav button{flex-shrink:0}}
