@@ -1,5 +1,5 @@
 {
-  "version": "2026.10.15.5",
+  "version": "2026.10.15.6",
   "released_at": "2026-10-15",
-  "notes": "Generated Buddy i GLB 3D model viewer, model-state animation hooks, iModels registry, responsive holographic PWA"
+  "notes": "3D Buddy, native model registry, signed Buddy receipt eject/verify/store, safer update prompts"
 }
