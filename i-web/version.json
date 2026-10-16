@@ -1,1 +1,5 @@
-{"version":"2026.10.15.15","released_at":"2026-10-15","notes":"Direct-to-Glass Studio with custom character uploads, light-field visualization, motion controls, iCalculator, and local receipts."}
+{
+  "version": "2026.10.15.16",
+  "released_at": "2026-10-15",
+  "notes": "i IDE Studio: isolated JavaScript runner, iShell diagnostics, target profiles, network probe, SHA-256 receipt dock. Certification remains pending."
+}
