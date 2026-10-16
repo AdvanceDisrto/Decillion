@@ -62,6 +62,26 @@ class GatewayTests(unittest.TestCase):
     asyncio.run(run_gateway(Chat(message='hello',preferred_provider='anthropic'),'u'))
    self.assertEqual(ex.exception.status_code,403)
 
+ def test_paid_fallback_requires_explicit_prompt_sharing_opt_in(self):
+  env={'I_GATEWAY_PAID_USER_IDS':'alice','I_GATEWAY_PAID_ENABLED':'true',
+       'OPENAI_API_KEY':'test-key','IAPI_OPENAI_MODEL_ID':'test-model',
+       'ANTHROPIC_API_KEY':'test-key','IAPI_ANTHROPIC_MODEL_ID':'test-model',
+       'I_GATEWAY_OPENAI_INPUT_COST_PER_1K':'0','I_GATEWAY_OPENAI_OUTPUT_COST_PER_1K':'0',
+       'I_GATEWAY_ANTHROPIC_INPUT_COST_PER_1K':'0','I_GATEWAY_ANTHROPIC_OUTPUT_COST_PER_1K':'0'}
+  async def provider(provider,messages,max_tokens):
+   if provider=='openai':raise HTTPException(502,'upstream unavailable')
+   return {'answer':'authorized fallback','requested_model':'test-model',
+           'reported_model':'test-model','tokens_in':1,'tokens_out':1,'latency_ms':1}
+  with patch.dict(os.environ,env,clear=True),patch('ai_gateway.remote_infer',side_effect=provider) as remote:
+   with self.assertRaises(HTTPException) as failure:
+    asyncio.run(run_gateway(Chat(message='private prompt'),'alice'))
+   self.assertEqual(failure.exception.status_code,503)
+   self.assertEqual(remote.call_count,1)
+   remote.reset_mock()
+   reply=asyncio.run(run_gateway(Chat(message='opted in prompt',allow_cross_provider_fallback=True),'alice'))
+   self.assertEqual(reply['answer'],'authorized fallback')
+   self.assertEqual(remote.call_count,2)
+
  def test_multiagent_proof_is_real_local_only(self):
   v=agent_loop_demo('  Validate     this code  ','code')
   self.assertEqual(len(v['execution']['stages']),3)
