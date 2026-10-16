@@ -17,7 +17,8 @@ class TestUniversalRouter(unittest.TestCase):
         with patch.dict("os.environ",{"IAPI_HF_TOKEN":"test-secret","IAPI_HF_MODEL_ID":"a/b"},clear=True):
             item=asyncio.run(providers())
             hf=next(i for i in item["providers"] if i["id"]=="huggingface")
-            self.assertFalse(hf["configured"])\n            self.assertEqual(hf["status"],"disabled-by-apache-only-policy")
+            self.assertFalse(hf["configured"])
+            self.assertEqual(hf["status"],"disabled-by-apache-only-policy")
             self.assertNotIn("test-secret",str(item))
     def test_apache_requires_attested_source_declaration(self):
         env={"IAPI_APACHE2_BASE_URL":"https://edge.example.com/v1",
