@@ -1,5 +1,1 @@
-{
-  "version": "2026.10.15.14",
-  "released_at": "2026-10-15",
-  "notes": "Direct-to-Glass software lab: optical phase visualizer, custom avatar injector, iCalculator, motion calibration and integrity receipts. Incorrect legacy avatar hidden."
-}
+{"version":"2026.10.15.15","released_at":"2026-10-15","notes":"Direct-to-Glass Studio with custom character uploads, light-field visualization, motion controls, iCalculator, and local receipts."}
