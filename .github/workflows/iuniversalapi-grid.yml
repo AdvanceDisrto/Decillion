@@ -1,0 +1,28 @@
+name: iUniversalApi Grid
+on:
+  push:
+    branches: [feature/iuniversalapi-grid-v1]
+    paths:
+      - 'i-api/iuniversalapi/**'
+      - 'i-api/test_iuniversalapi.py'
+      - '.github/workflows/iuniversalapi-grid.yml'
+  pull_request:
+    paths:
+      - 'i-api/iuniversalapi/**'
+      - 'i-api/test_iuniversalapi.py'
+      - '.github/workflows/iuniversalapi-grid.yml'
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -r i-api/requirements.txt
+      - run: python -m compileall -q i-api/iuniversalapi
+      - working-directory: i-api
+        run: python -m unittest -v test_iuniversalapi.py
+      - working-directory: i-api
+        run: python -m iuniversalapi.stress --events 10000 --concurrency 100
