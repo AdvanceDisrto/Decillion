@@ -33,5 +33,21 @@ jobs:
           ctest --test-dir /tmp/iscrossplane-mac --output-on-failure
       - name: Compile portable Swift bridge module (macOS host only)
         run: swiftc -I crossplane/ios/ImCrossPlane -parse-as-library -emit-module -o /tmp/ImCrossPlane.swiftmodule crossplane/ios/ImCrossPlane.swift
-      - name: Verify iOS SDK visibility (not iOS build)
-        run: xcrun --sdk iphoneos --show-sdk-path
+      - name: Build real iOS arm64 static core
+        run: |
+          sdk="$(xcrun --sdk iphoneos --show-sdk-path)"
+          xcrun --sdk iphoneos clang++ -std=c++17 -arch arm64 -miphoneos-version-min=15.0 -isysroot "$sdk" -Icrossplane/include -c crossplane/src/im_crossplane.cpp -o /tmp/im_crossplane_ios.o
+          xcrun libtool -static -o /tmp/libim_crossplane_ios_arm64.a /tmp/im_crossplane_ios.o
+          test -s /tmp/libim_crossplane_ios_arm64.a
+      - name: Compile Swift bridge for iOS device SDK
+        run: |
+          sdk="$(xcrun --sdk iphoneos --show-sdk-path)"
+          xcrun swiftc -target arm64-apple-ios15.0 -sdk "$sdk" -I crossplane/ios/ImCrossPlane -parse-as-library -emit-module -o /tmp/ImCrossPlane-iOS.swiftmodule crossplane/ios/ImCrossPlane.swift
+      - uses: actions/upload-artifact@v4
+        with:
+          name: iCrossPlane-iOS-ARM64-Static-Library
+          path: |
+            /tmp/libim_crossplane_ios_arm64.a
+            /tmp/ImCrossPlane-iOS.swiftmodule
+          if-no-files-found: error
+          retention-days: 14
