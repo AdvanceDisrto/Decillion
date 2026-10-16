@@ -31,5 +31,7 @@ jobs:
           cmake -S crossplane -B /tmp/iscrossplane-mac -DCMAKE_BUILD_TYPE=Release
           cmake --build /tmp/iscrossplane-mac --parallel 2
           ctest --test-dir /tmp/iscrossplane-mac --output-on-failure
+      - name: Compile portable Swift bridge module (macOS host only)
+        run: swiftc -I crossplane/ios/ImCrossPlane -parse-as-library -emit-module -o /tmp/ImCrossPlane.swiftmodule crossplane/ios/ImCrossPlane.swift
       - name: Verify iOS SDK visibility (not iOS build)
         run: xcrun --sdk iphoneos --show-sdk-path
