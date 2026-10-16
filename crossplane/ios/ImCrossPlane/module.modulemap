@@ -1,4 +1,4 @@
-module ImCrossPlane [system] {
+module ICoreC [system] {
  header "../../include/im_crossplane.h"
  export *
 }
