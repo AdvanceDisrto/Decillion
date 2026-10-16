@@ -1,5 +1,6 @@
 // iMobile native bootstrap — sandbox-only runtime; no modem/VPU/mesh privileges.
 #include <jni.h>
+#include "im_crossplane.h"
 #include <android/log.h>
 #include <cerrno>
 #include <cstdint>
@@ -40,10 +41,18 @@ Java_io_im_core_ImApplication_bootUnderTheHoodSystem(
         return JNI_FALSE;
     }
     const bool ok = initialize_local_ledger(base);
+    im_mesh_stats native_test{};
+    const bool shared_core_linked = (im_core_version() == IM_CORE_ABI_VERSION) &&
+       (im_simulate_mesh(20, 20, 2, &native_test) == 0) &&
+       (native_test.delivered_simulated == 20) &&
+       (native_test.disconnected_nodes == 10);
+    if (!shared_core_linked) {
+        __android_log_print(ANDROID_LOG_ERROR, kTag, "Portable shared C++ core failed local software self-test");
+    }
     __android_log_print(ok ? ANDROID_LOG_INFO : ANDROID_LOG_ERROR, kTag,
         "Local offline ledger %s. VPU, iCalcula model, mesh tunnel and gRPC are NOT started.",
         ok ? "initialized" : "unavailable");
-    return ok ? JNI_TRUE : JNI_FALSE;
+    return (ok && shared_core_linked) ? JNI_TRUE : JNI_FALSE;
 }
 
 extern "C" JNIEXPORT jstring JNICALL
@@ -51,6 +60,6 @@ Java_io_im_core_ImApplication_nativeCapabilities(
     JNIEnv* env, jobject /*self*/) {
     const char* status = "{\"offline_ledger\":\"app-private\","
         "\"vpu_mmio\":false,\"wireguard_mesh\":false,\"grpc_daemon\":false,"
-        "\"imodel_inference\":false,\"hardware_receipts\":false}";
+        "\"imodel_inference\":false,\"hardware_receipts\":false,\"portable_core_linked\":true}";
     return env->NewStringUTF(status);
 }
