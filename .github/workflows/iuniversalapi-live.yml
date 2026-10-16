@@ -2,7 +2,7 @@ name: Buddy Universal API Live Integration
 on:
   push:
     branches: [feature/buddy-receipts-backend-20261015]
-    paths: ['i-api/universal_router.py','i-api/main.py','i-api/test_universal_router.py','.github/workflows/iuniversalapi-live.yml']
+    paths: ['i-api/universal_router.py','i-api/main.py','i-api/test_universal_router.py','i-api/imirror.py','i-api/test_imirror.py','i-api/imodels.py','.github/workflows/iuniversalapi-live.yml']
   pull_request:
     paths: ['i-api/universal_router.py','i-api/main.py','i-api/test_universal_router.py']
 jobs:
@@ -17,4 +17,4 @@ jobs:
       - run: python -m pip install -r i-api/requirements.txt
       - run: python -m compileall -q i-api
       - working-directory: i-api
-        run: python -m unittest -v test_universal_router.py
+        run: python -m unittest -v test_universal_router.py test_imirror.py
