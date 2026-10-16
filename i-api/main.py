@@ -21,6 +21,7 @@ from imirror import router as mirror_router
 from lifeline import router as lifeline_router
 from telecom_orchestra import router as telecom_orchestra_router
 from imobile_telecom import router as imobile_router
+from imobile_live_signaling import router as live_signaling_router
 from imobile_crossband import router as crossband_router
 from dewi_mesh import router as dewi_router
 from crossplane_audit import router as crossplane_audit_router
@@ -38,6 +39,7 @@ app.include_router(mirror_router)
 app.include_router(lifeline_router)
 app.include_router(telecom_orchestra_router)
 app.include_router(imobile_router)
+app.include_router(live_signaling_router)
 app.include_router(crossband_router)
 app.include_router(dewi_router)
 app.include_router(crossplane_audit_router)
