@@ -116,3 +116,6 @@ async def generate_model(model_name: str, body: Action, authorization: str=Heade
         raise HTTPException(404,"Unknown model")
     body.model=model_name
     return await action(body, authorization)
+
+from sorcery import router as sorcery_router
+app.include_router(sorcery_router)
