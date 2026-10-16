@@ -66,5 +66,5 @@ async def crossband_capabilities():
             "starlink_connected":False,"cellular_connected":False,
             "wifi_direct_connected":False,"lan_peer_authenticated":False,
             "billing_active":False,"lifeline_provisioned":False,
-            "k r d i d":"not queried",
+            "krdid_status":"not queried",
             "notice":"No subscriber unlocking, SSI authorization or carrier access is implemented."}
