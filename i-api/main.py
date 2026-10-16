@@ -67,30 +67,13 @@ async def persist(row:dict, token:str):
     if response.status_code not in (200,201): raise HTTPException(503,"Receipt persistence unavailable")
 @app.get("/health")
 async def health():
-    return {"status":"ok","storage_auth_signing_configured":ready(),"model_configured":bool((MODEL_URL and MODEL_TOKEN) or imodel_configured("buddy") or imodel_configured("the-one") or universal_active()),"universal_provider_count":len(universal_active())}
+    return {"status":"ok","storage_auth_signing_configured":ready(),"model_configured":bool(universal_active()),"universal_provider_count":len(universal_active())}
 @app.post("/v1/actions")
 async def action(body:Action, authorization:str=Header(default="")):
     uid,token=await user_id(authorization)
-    # Prefer verified-in-request native inference adapter when configured.
-    # Legacy Buddy adapter is retained for previously deployed integrations.
-    if imodel_configured(body.model):
-        answer,actual_model=await imodel_complete(body.model,body.request)
-    elif body.model=="buddy" and MODEL_URL and MODEL_TOKEN:
-        async with httpx.AsyncClient(timeout=45) as client:
-            try:
-                response=await client.post(MODEL_URL,headers={"Authorization":"Bearer "+MODEL_TOKEN},json={"message":body.request,"user_id":uid})
-                response.raise_for_status()
-                result=response.json()
-            except Exception:
-                raise HTTPException(502,"Buddy model unavailable")
-        answer=result.get("answer")
-        actual_model=result.get("model_id","legacy-adapter/unspecified")
-        if not isinstance(answer,str) or not answer:
-            raise HTTPException(502,"Buddy model returned no answer")
-    elif universal_active():
-        answer,actual_model=await universal_infer(body.request)
-    else:
-        raise HTTPException(503,"No Buddy model-serving endpoint or iUniversalApi provider is configured")
+    # One allowed route: operator-declared Apache-2.0 iModel weights.
+    # Other registered adapters are disabled for inference by user policy.
+    answer,actual_model=await universal_infer(body.request)
     payload={"protocol":"i-receipt/0.3","action_id":str(uuid.uuid4()),"user_id":uid,"request":body.request,"result":answer,"created_at":datetime.now(timezone.utc).isoformat(),"parent_id":body.parent_id,"execution":{"kind":"model-response","status":"completed","model_attestation":"inference-response-only; native-weights-unverified","model_id":actual_model}}
     digest=hashlib.sha256(canonical(payload)).hexdigest()
     key=signing_key()
