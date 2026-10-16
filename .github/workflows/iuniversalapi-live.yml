@@ -18,3 +18,35 @@ jobs:
       - run: python -m compileall -q i-api
       - working-directory: i-api
         run: python -m unittest -v test_universal_router.py test_imirror.py test_local_discovery.py test_lifeline.py test_telecom_orchestra.py test_imobile_telecom.py
+
+  container-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build iMobile OCI image
+        run: docker build -f i-api/Dockerfile.orchestra -t imobile:ci .
+      - name: Launch authorized local container for tests
+        run: docker run -d --name imobile-ci -p 127.0.0.1:18880:8080 imobile:ci
+      - name: Verify real HTTP API and simulated offline routing
+        run: |
+          python3 - <<'PY'
+          import json, time, urllib.request
+          url='http://127.0.0.1:18880'
+          for i in range(35):
+              try:
+                  r=json.load(urllib.request.urlopen(url+'/health', timeout=3))
+                  if r.get('status')=='ok': break
+              except Exception:time.sleep(1)
+          else:raise RuntimeError('health never succeeded')
+          body=json.dumps({'from_handle':'@sender','to_handle':'@buddy','total_nodes':12,'blackout_fraction':0.5}).encode()
+          req=urllib.request.Request(url+'/v1/imobile/simulate',data=body,headers={'Content-Type':'application/json'})
+          result=json.load(urllib.request.urlopen(req,timeout=5))
+          assert result['nodes_offline']==6
+          assert result['status']=='SIMULATED_NOT_TRANSMITTED'
+          assert not result['receipt']['production_certified']
+          print('IMOBILE CONTAINER HTTP PASS: real container, 50% simulated node outage, no carrier claims')
+          PY
+      - name: Inspect logs if build failed
+        if: failure()
+        run: docker logs imobile-ci || true
