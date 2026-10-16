@@ -53,13 +53,17 @@ def apache_policy_ready():
     return (os.getenv("IAPI_APACHE2_LICENSE_SPDX","").strip()=="Apache-2.0"
             and len(revision)==64 and all(c in "0123456789abcdef" for c in revision))
 
+def runtime_endpoints():
+    # Re-read settings at request time; provider URLs must not freeze at import.
+    return tuple(env_endpoint(e.id,"IAPI_APACHE2") if e.id=="apache2-licensed-llm" else e for e in ENDPOINTS)
+
 def active():
-    return tuple(e for e in ENDPOINTS if e.id=="apache2-licensed-llm"
+    return tuple(e for e in runtime_endpoints() if e.id=="apache2-licensed-llm"
                  and e.ready() and apache_policy_ready())
 
 @router.get("/providers")
 async def providers():
-    return {"providers":[e.status() for e in ENDPOINTS],
+    return {"providers":[e.status() for e in runtime_endpoints()],
             "routing":"apache-2.0-only","keys_exposed":False,"apache_policy_declared":apache_policy_ready(),
             "note":"MIT and Apache-2.0 are licenses, not networks; these routes target your separately hosted licensed model."}
 
