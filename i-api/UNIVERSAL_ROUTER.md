@@ -1,20 +1,19 @@
-# iUniversalApi Router — Render deployment
-Service: https://i-the-one-buddy-api.onrender.com
-Routes: GET /v1/universal/providers, POST /v1/universal/chat (authenticated), POST /v1/actions (authenticated, signed/persisted if configured).
+# Apache-2.0-only live iModels policy
 
-Render environment variables: provider token/key AND real served model ID are required.
-OpenAI: IAPI_OPENAI_KEY, IAPI_OPENAI_MODEL_ID
-Anthropic: IAPI_ANTHROPIC_KEY, IAPI_ANTHROPIC_MODEL_ID
-Groq: IAPI_GROQ_KEY, IAPI_GROQ_MODEL_ID
-DeepSeek: IAPI_DEEPSEEK_KEY, IAPI_DEEPSEEK_MODEL_ID
-Google Gemini compatible: IAPI_GOOGLE_KEY, IAPI_GOOGLE_MODEL_ID
-Hugging Face: IAPI_HF_TOKEN, IAPI_HF_MODEL_ID
-MIT-licensed self-hosted: IAPI_MIT_BASE_URL, IAPI_MIT_API_KEY, IAPI_MIT_MODEL_ID
-Apache-2.0 self-hosted: IAPI_APACHE2_BASE_URL, IAPI_APACHE2_API_KEY, IAPI_APACHE2_MODEL_ID
+**Exclusive allowed inference provider**: separately hosted Apache-2.0-licensed model through the OpenAI-compatible endpoint. The previous commercial, Hugging Face and MIT adapters remain visible in the provider registry for reference, but are disabled for inference by policy. Buddy, THE ONE, /v1/actions and /v1/universal/chat all obey the gate.
 
-MIT and Apache 2.0 are licenses, NOT inference providers. Host the actual legally compatible model yourself with OpenAI-compatible HTTPS serving.
-ChatGPT Hugging Face OAuth does not automatically make tokens available to the Render application.
-Configured status checks merely show environment presence, not successful inference.
-Provider passwords never belong in GitHub or the public PWA config.
-Request a signed persisted action receipt only after Supabase JWT auth, storage/RLS, and an Ed25519 signing key are configured.
-Do not merge protected branches without review and explicit approval.
+**Render server environment configuration** (private; never in PWA or GitHub):
+
+- IAPI_APACHE2_BASE_URL: HTTPS model server base URL ending /v1.
+- IAPI_APACHE2_API_KEY: inference-service bearer credential.
+- IAPI_APACHE2_MODEL_ID: exact served model ID.
+- IAPI_APACHE2_LICENSE_SPDX: Apache-2.0.
+- IAPI_APACHE2_MODEL_REVISION_SHA: full 64-character lowercase SHA-256 from a genuine model source revision/manifest record.
+
+This is an *operator declaration*, not automatic license authentication or independent verification of checkpoint weights. Before accepting the source, audit its exact model card, weight license, dependencies, tokenizer license and provenance; a GitHub project licensed Apache-2.0 does not necessarily license downloaded model weights identically.
+
+**Acceptance**: GET /v1/universal/providers shows apache2 route configured only when endpoint + keys + license declaration are provided. An authenticated POST /v1/universal/chat should return actual generated text; GET /v1/models/probe reports configuration not independent inference verification. Signing and persistence still require Supabase configuration and an Ed25519 private signing key.
+
+**Privacy and safety**: don't put provider keys into frontend credential fields. Render's service environment editor is the credentials configuration matrix. The Web Bluetooth API does not imply paired devices, and PWAs cannot directly invoke Wi-Fi Direct radio discovery. iMirror is a browser-level dual-plane observation, optional local camera preview, and in-memory fault simulation, not cloud state recovery or signed hardware certification.
+
+**No main merge** without explicit approval.
