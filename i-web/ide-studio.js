@@ -51,7 +51,7 @@ async function run(){
  frame.setAttribute('sandbox','allow-scripts');frame.setAttribute('aria-hidden','true');
  frame.style.cssText='position:absolute;width:0;height:0;border:0;opacity:0';
  const script=JSON.stringify(code).replace(/</g,'\\u003c');
- const inner=`<!doctype html><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; connect-src 'none'; img-src 'none'; form-action 'none'; base-uri 'none'"><script>
+ const inner=`<!doctype html><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval'; connect-src 'none'; img-src 'none'; form-action 'none'; base-uri 'none'"><script>
  const id=${JSON.stringify(id)};
  const send=(type,value)=>parent.postMessage({channel:'i-ide-sandbox',id,type,value},'*');
  const console={log:(...x)=>send('stdout',x.map(String).join(' ')),error:(...x)=>send('stderr',x.map(String).join(' ')),warn:(...x)=>send('stdout',x.map(String).join(' '))};
