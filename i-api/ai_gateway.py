@@ -273,5 +273,43 @@ async def usage(authorization:str=Header(default="")):
 async def key_status(authorization:str=Header(default="")):
  uid=await check_auth(authorization)
  return {"principal_authenticated":bool(uid),"provider_keys_exposed":False,
-   "configured":configured(),"virtual_issuer":"not enabled",
+   "configured":configured(),"virtual_issuer":"opt-in 15-minute JWT when I_GATEWAY_TOKEN_SECRET is set",
    "mpc_key_split":"not implemented"}
+
+
+class AgentDemoRequest(BaseModel):
+ objective:str=Field(min_length=1,max_length=500)
+ task:str=Field(default="code",pattern="^(chat|code|reasoning)$")
+
+def agent_loop_demo(objective:str,task:str="code"):
+ """Deterministic, reproducible mock workflow: NO cloud/LLM calls."""
+ if len(objective)>500 or not objective or task not in {"code","chat","reasoning"}:
+  raise ValueError("Invalid agent demo input")
+ # Stages deliberately show real local processing only, with no fabricated LLM.
+ normalized=" ".join(objective.strip().split())
+ stages=[
+  {"agent":"i™ Planner","result":{"task":task,"normalized_goal":normalized},
+   "external_provider_called":False},
+  {"agent":"i™ Validator","result":{"nonempty":bool(normalized),
+    "length_within_bounds":len(normalized)<=500},"external_provider_called":False},
+  {"agent":"KRDiD Boundary","result":{"identity_explanation":"Demo stages do not authenticate credentials.",
+    "cryptographic_authority":"No identity verification performed"},"external_provider_called":False}
+ ]
+ record={"schema":"i-agents-demo/1","objective_sha256":hashlib.sha256(normalized.encode()).hexdigest(),
+  "stages":stages,"status":"LOCAL_DETERMINISTIC_TEST","real_multi_model_exchange":False,
+  "provider_apis_called":0,"wallet_charges":0}
+ return {"execution":record,"receipt":receipt(record)}
+
+@router.post("/agents/demo")
+async def agents_demo(req:AgentDemoRequest,authorization:str=Header(default="")):
+ await check_auth(authorization)
+ return agent_loop_demo(req.objective,req.task)
+
+@router.get("/invoice-preview")
+async def invoice_preview(authorization:str=Header(default="")):
+ uid=await check_auth(authorization)
+ async with GUARD:
+  records=list(USAGE[uid])
+ return {"record_count":len(records),"currency":"USD","verified_charges_usd":0,
+   "invoice_generated":False,"wallet_debit_performed":False,
+   "reason":"Provider tariff validation, persistent payment ledger and wallet integration not configured"}
