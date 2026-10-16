@@ -1,0 +1,22 @@
+name: i Edge Continuity
+on:
+  push:
+    branches: [feature/buddy-receipts-backend-20261015]
+  pull_request:
+    paths:
+      - 'i-api/edge/**'
+      - '.github/workflows/i-edge-continuity.yml'
+jobs:
+  ledger:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check edge Python syntax
+        run: python -m compileall -q i-api/edge
+      - name: Verify receipt continuity
+        working-directory: i-api/edge
+        run: python -m unittest -v test_ledger.py
