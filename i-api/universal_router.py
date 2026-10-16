@@ -23,8 +23,8 @@ class Endpoint:
     def token(self):return os.getenv(self.key_env,"").strip()
     def ready(self):return bool(self.model() and self.token() and safe_url(self.url))
     def status(self):return {"id":self.id,"model":self.model() or None,
-      "configured":self.ready(),"last_inference_verified":False,
-      "status":"configured-not-probed" if self.ready() else "not-configured"}
+      "configured":self.ready() and self.id=="apache2-licensed-llm" and apache_policy_ready(),"last_inference_verified":False,
+      "status":("eligible-unverified" if self.id=="apache2-licensed-llm" and self.ready() and apache_policy_ready() else "disabled-by-apache-only-policy" if self.id!="apache2-licensed-llm" else "not-configured")}
 
 def safe_url(value):
     try:
@@ -46,12 +46,21 @@ ENDPOINTS=(
  env_endpoint("mit-licensed-llm","IAPI_MIT"),
  env_endpoint("apache2-licensed-llm","IAPI_APACHE2"),
 )
-def active():return tuple(e for e in ENDPOINTS if e.ready())
+def apache_policy_ready():
+    """Operator-declared Apache-2.0 source and immutable revision.
+    Declaration is NOT independent license or weight verification."""
+    revision=os.getenv("IAPI_APACHE2_MODEL_REVISION_SHA","").strip().lower()
+    return (os.getenv("IAPI_APACHE2_LICENSE_SPDX","").strip()=="Apache-2.0"
+            and len(revision)==64 and all(c in "0123456789abcdef" for c in revision))
+
+def active():
+    return tuple(e for e in ENDPOINTS if e.id=="apache2-licensed-llm"
+                 and e.ready() and apache_policy_ready())
 
 @router.get("/providers")
 async def providers():
     return {"providers":[e.status() for e in ENDPOINTS],
-            "routing":"explicit-configured-only","keys_exposed":False,
+            "routing":"apache-2.0-only","keys_exposed":False,"apache_policy_declared":apache_policy_ready(),
             "note":"MIT and Apache-2.0 are licenses, not networks; these routes target your separately hosted licensed model."}
 
 async def infer(prompt:str,max_tokens:int=512,preferred:str|None=None):
