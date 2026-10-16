@@ -1,3 +1,4 @@
+import ImCrossPlane
 import Foundation
 // i™ shared C ABI wrapper. This is a Swift source bridge, not an iOS .ipa.
 public struct IMeshTestResult {
