@@ -17,12 +17,14 @@ from imodels import router as model_router, complete as imodel_complete, configu
 from fabric import router as fabric_router
 from alternative_compute import router as alternative_compute_router
 from omnisync import router as omnisync_router
+from universal_router import router as universal_router, infer as universal_infer, active as universal_active
 
 app = FastAPI(title="i THE ONE Buddy Receipts", version="0.4.0")
 app.include_router(model_router)
 app.include_router(fabric_router)
 app.include_router(alternative_compute_router)
 app.include_router(omnisync_router)
+app.include_router(universal_router)
 origin = os.environ.get("PUBLIC_ORIGIN", "").rstrip("/")
 app.add_middleware(CORSMiddleware, allow_origins=[origin] if origin else [], allow_credentials=False, allow_methods=["GET","POST"], allow_headers=["Authorization","Content-Type"])
 PROJECT_URL = os.environ.get("SUPABASE_URL", "").rstrip("/")
@@ -65,7 +67,7 @@ async def persist(row:dict, token:str):
     if response.status_code not in (200,201): raise HTTPException(503,"Receipt persistence unavailable")
 @app.get("/health")
 async def health():
-    return {"status":"ok","storage_auth_signing_configured":ready(),"model_configured":bool((MODEL_URL and MODEL_TOKEN) or imodel_configured("buddy") or imodel_configured("the-one"))}
+    return {"status":"ok","storage_auth_signing_configured":ready(),"model_configured":bool((MODEL_URL and MODEL_TOKEN) or imodel_configured("buddy") or imodel_configured("the-one") or universal_active()),"universal_provider_count":len(universal_active())}
 @app.post("/v1/actions")
 async def action(body:Action, authorization:str=Header(default="")):
     uid,token=await user_id(authorization)
@@ -85,8 +87,10 @@ async def action(body:Action, authorization:str=Header(default="")):
         actual_model=result.get("model_id","legacy-adapter/unspecified")
         if not isinstance(answer,str) or not answer:
             raise HTTPException(502,"Buddy model returned no answer")
+    elif universal_active():
+        answer,actual_model=await universal_infer(body.request)
     else:
-        raise HTTPException(503,"Selected iModels inference endpoint has not been configured")
+        raise HTTPException(503,"No Buddy model-serving endpoint or iUniversalApi provider is configured")
     payload={"protocol":"i-receipt/0.3","action_id":str(uuid.uuid4()),"user_id":uid,"request":body.request,"result":answer,"created_at":datetime.now(timezone.utc).isoformat(),"parent_id":body.parent_id,"execution":{"kind":"model-response","status":"completed","model_attestation":"inference-response-only; native-weights-unverified","model_id":actual_model}}
     digest=hashlib.sha256(canonical(payload)).hexdigest()
     key=signing_key()
