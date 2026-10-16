@@ -1,0 +1,13 @@
+name: i Phone Smoke
+on:
+  workflow_dispatch:
+  push:
+    branches: [deploy/i-the-one-pwa-20261015]
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: node --check i-web/device-acceptance.js
+      - run: node --check i-web/app.js
+      - run: node --check i-web/sorcery.js
