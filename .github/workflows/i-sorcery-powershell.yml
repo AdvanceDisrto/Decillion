@@ -1,0 +1,14 @@
+name: i Sorcery Sandboxed PowerShell
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  powershell-diagnostics:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run reviewed PowerShell diagnostic script
+        shell: pwsh
+        run: ./scripts/sorcery/inspect.ps1
