@@ -104,4 +104,12 @@ window.iGatewayRequest=async(path,request)=>{
  return response;
 };
 
+window.iSorceryRequest=async(path,method='GET',body=null)=>{
+ if(!token||Date.now()>expires||!cfg.buddyApiUrl)throw Error('Sign in to your i™ account first.');
+ const url=cfg.buddyApiUrl.replace(/\\/$/,'')+'/v1/sorcery/'+path;
+ const res=await fetch(url,{method,headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},...(body?{body:JSON.stringify(body)}:{})});
+ if(!res.ok){let problem='HTTP '+res.status;try{const json=await res.json();problem=json.detail||problem}catch{}throw Error(problem)}
+ return res.json();
+};
+
 })();
