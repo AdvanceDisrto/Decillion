@@ -13,6 +13,7 @@ import os
 import secrets
 import time
 import uuid
+import jwt
 from collections import defaultdict, deque
 from dataclasses import dataclass
 from datetime import datetime,timezone
@@ -128,9 +129,34 @@ def receipt(record:dict):
          "signature":None,"ledger_anchor":None,"certified":False}
 
 async def check_auth(auth:str):
+ # Scoped ephemeral i™ proxy tokens are only issued to an existing verified
+ # user. They are never provider API keys, are not MPC and cannot bypass auth.
+ if auth.startswith("Bearer iat."):
+  secret=os.getenv("I_GATEWAY_TOKEN_SECRET","")
+  if len(secret)<32:raise HTTPException(503,"Scoped token verification not configured")
+  try:
+   claim=jwt.decode(auth[11:],secret,algorithms=["HS256"],
+     audience="i-gateway",issuer="i-gateway",options={"require":["exp","sub","aud","iss","scope"]})
+   if claim.get("scope")!="gateway:chat":raise HTTPException(403,"Wrong API token scope")
+   return claim["sub"]
+  except jwt.PyJWTError:raise HTTPException(401,"Invalid or expired i™ proxy token")
  from main import user_id
  uid,_=await user_id(auth)
  return uid
+
+@router.post("/keys/issue")
+async def issue_key(authorization:str=Header(default="")):
+ from main import user_id
+ uid,_=await user_id(authorization)
+ secret=os.getenv("I_GATEWAY_TOKEN_SECRET","")
+ if len(secret)<32:raise HTTPException(503,"Scoped API token issuer not configured")
+ now=int(time.time())
+ signed=jwt.encode({"iss":"i-gateway","aud":"i-gateway","sub":uid,
+   "scope":"gateway:chat","iat":now,"exp":now+900,"jti":secrets.token_hex(16)},
+   secret,algorithm="HS256")
+ return {"token":"iat."+signed,"expires_in_seconds":900,
+   "scope":"gateway:chat","issuer":"i-gateway",
+   "mpc":False,"cloud_provider_credentials_included":False}
 
 async def rate_check(uid:str,tier:str):
  now=time.monotonic()
