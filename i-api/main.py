@@ -23,6 +23,7 @@ from telecom_orchestra import router as telecom_orchestra_router
 from imobile_telecom import router as imobile_router
 from imobile_crossband import router as crossband_router
 from dewi_mesh import router as dewi_router
+from crossplane_audit import router as crossplane_audit_router
 from vpu_lab import router as vpu_lab_router
 from vpu_lab import router as vpu_router
 from universal_router import router as universal_router, infer as universal_infer, active as universal_active
@@ -38,6 +39,7 @@ app.include_router(telecom_orchestra_router)
 app.include_router(imobile_router)
 app.include_router(crossband_router)
 app.include_router(dewi_router)
+app.include_router(crossplane_audit_router)
 app.include_router(vpu_lab_router)
 app.include_router(vpu_router)
 app.include_router(universal_router)
