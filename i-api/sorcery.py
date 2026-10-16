@@ -74,3 +74,28 @@ async def dispatch(body:Dispatch,authorization:str=Header(default="")):
  "ref":REF,"timestamp":datetime.now(timezone.utc).isoformat(),"github_accepted":True,
  "workflow_completed":False,"receipt_signed":False}
  return {"accepted":True,"execution_pending":True,"evidence_sha256":hashlib.sha256(json.dumps(event,sort_keys=True).encode()).hexdigest(),"record":event}
+
+# Operator-only connection inventory. Configuration != successful API authentication.
+INTEGRATIONS={
+ "github":("I_SORCERY_GITHUB_TOKEN",),
+ "render":("I_SORCERY_RENDER_API_KEY",),
+ "supabase":("SUPABASE_URL","SUPABASE_PUBLISHABLE_KEY","SUPABASE_JWKS_URL"),
+ "openai":("OPENAI_API_KEY","IAPI_OPENAI_MODEL_ID"),
+ "anthropic":("ANTHROPIC_API_KEY","IAPI_ANTHROPIC_MODEL_ID"),
+ "deepseek":("DEEPSEEK_API_KEY","IAPI_DEEPSEEK_MODEL_ID"),
+ "google":("GOOGLE_API_KEY","IAPI_GOOGLE_MODEL_ID"),
+ "mistral":("MISTRAL_API_KEY","IAPI_MISTRAL_MODEL_ID"),
+ "cohere":("COHERE_API_KEY","IAPI_COHERE_MODEL_ID"),
+ "apache2-imodel":("IAPI_APACHE2_API_KEY","IAPI_APACHE2_MODEL_ID","IAPI_APACHE2_BASE_URL"),
+ "apple-signing":("APPLE_TEAM_ID","APPLE_CERTIFICATE_P12_BASE64","APPLE_PROVISIONING_PROFILE_BASE64"),
+}
+def integration_inventory():
+ return {name:{"configured":all(bool(os.getenv(k)) for k in envs),
+               "authenticated":False,"live_call_verified":False,
+               "status":"configured-not-tested" if all(bool(os.getenv(k)) for k in envs) else "configuration-incomplete"}
+         for name,envs in INTEGRATIONS.items()}
+@router.get("/integrations")
+async def integrations(authorization:str=Header(default="")):
+ await principal(authorization)
+ return {"connections":integration_inventory(),"keys_exposed":False,
+         "note":"Configuration status only. Live provider access is not inferred."}
