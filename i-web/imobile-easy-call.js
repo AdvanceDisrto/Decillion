@@ -2,10 +2,34 @@
    Requires working i account, reachable backend, microphone permission, STUN/TURN. */
 (()=>{'use strict';const main=document.querySelector('main'),nav=document.querySelector('nav');if(!main||!nav)return;
 const page=document.createElement('section');page.className='view';page.id='imobile-easy';
-page.innerHTML='<div class="glass" style="border:1px solid #74ebc2;background:linear-gradient(145deg,#052f2a,#0c1428)"><small>i™ · JUST ASK BUDDY™</small><h1>📞 iMobile</h1><p>Call someone in two taps. Share an invitation through Messages, AirDrop or Mail. Both people sign in to i™.</p><div style="display:flex;flex-wrap:wrap;gap:9px"><button id="ieAudio" class="primary">📞 Audio Call</button><button id="ieVideo" class="primary">📹 Video Call</button><button id="ieEnd">End</button></div><p id="ieStatus" role="status">Ready. Sign in before calling.</p><div id="ieIncoming" hidden><h2>📲 Incoming iMobile call</h2><button id="ieAccept" class="primary">Accept & Connect</button><button id="ieDecline">Decline</button></div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:16px"><div><h3>You</h3><video autoplay muted playsinline id="ieSelf" style="width:100%;background:#000;border-radius:14px;min-height:130px"></video></div><div><h3>Other person</h3><video autoplay playsinline id="iePeer" style="width:100%;background:#000;border-radius:14px;min-height:130px"></video></div></div><button id="ieShare" hidden>📤 Share invitation again</button><p class="fine">Internet calling only; cannot dial the telephone network or receive background ringing yet. Calls require a working i™ account and compatible network. No TURN relay provisioned: some carrier/NAT combinations cannot connect. Not for emergencies.</p></div>';
+page.innerHTML='<div class="glass" style="border:1px solid #74ebc2;background:linear-gradient(145deg,#052f2a,#0c1428)"><small>i™ · JUST ASK BUDDY™</small><h1>📞 iMobile</h1><p>Call someone in two taps. Share an invitation through Messages, AirDrop or Mail. Both people sign in to i™.</p><div style="display:flex;flex-wrap:wrap;gap:9px"><button id="ieAudio" class="primary">📞 Audio Call</button><button id="ieVideo" class="primary">📹 Video Call</button><button id="ieEnd">End</button></div><p id="ieStatus" role="status">Ready. Sign in before calling.</p><button id="ieEnableAlerts" type="button">🔔 Enable iChirp sounds</button><span id="ieAlertInfo" role="status">Sounds off until enabled</span><div id="ieIncoming" hidden><h2>📲 Incoming iMobile call</h2><button id="ieAccept" class="primary">Accept & Connect</button><button id="ieDecline">Decline</button></div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:16px"><div><h3>You</h3><video autoplay muted playsinline id="ieSelf" style="width:100%;background:#000;border-radius:14px;min-height:130px"></video></div><div><h3>Other person</h3><video autoplay playsinline id="iePeer" style="width:100%;background:#000;border-radius:14px;min-height:130px"></video></div></div><button id="ieShare" hidden>📤 Share invitation again</button><p class="fine">Internet calling only; cannot dial the telephone network or receive background ringing yet. Calls require a working i™ account and compatible network. No TURN relay provisioned: some carrier/NAT combinations cannot connect. Not for emergencies.</p></div>';
 main.append(page);const tab=document.createElement('button');tab.dataset.tab='imobile-easy';tab.type='button';tab.textContent='📞 Easy Call';tab.onclick=()=>{document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v===page));nav.querySelectorAll('[data-tab]').forEach(v=>v.classList.toggle('active',v===tab))};nav.append(tab);nav.style.overflowX='auto';nav.style.justifyContent='flex-start';
 const $=id=>document.getElementById(id),status=text=>$('ieStatus').textContent=text;
 let conn=null,media=null,room=null,mode='audio',caller=false,seen=0,timer=null,live=false;
+let chirpEnabled=false,chirpAudio=null;
+async function chirp(){
+ if(!chirpEnabled)return;
+ try{
+  const AudioCtx=window.AudioContext||window.webkitAudioContext;
+  if(!AudioCtx)return;
+  chirpAudio=chirpAudio||new AudioCtx();
+  if(chirpAudio.state==='suspended')await chirpAudio.resume();
+  const t=chirpAudio.currentTime;
+  for(const [offset,freq] of [[0,960],[0.11,1240],[0.24,1040]]){
+   const osc=chirpAudio.createOscillator(),gain=chirpAudio.createGain();
+   osc.type='sine';osc.frequency.setValueAtTime(freq,t+offset);
+   gain.gain.setValueAtTime(0.001,t+offset);
+   gain.gain.exponentialRampToValueAtTime(0.12,t+offset+0.018);
+   gain.gain.exponentialRampToValueAtTime(0.001,t+offset+0.10);
+   osc.connect(gain);gain.connect(chirpAudio.destination);
+   osc.start(t+offset);osc.stop(t+offset+0.11);
+  }
+ }catch{}
+}
+$('ieEnableAlerts').onclick=async()=>{
+ chirpEnabled=true;await chirp();$('ieAlertInfo').textContent='iChirp enabled while this page is active. Background ringing needs native push/CallKit.';
+};
+
 const api=(path,method='GET',body=null)=>{if(!window.iMobileCallApi)throw Error('i™ sign-in not initialized');return window.iMobileCallApi(path,method,body)};
 function clear(){live=false;if(timer){clearInterval(timer);timer=null}if(conn){conn.close();conn=null}if(media){media.getTracks().forEach(t=>t.stop());media=null}$('ieSelf').srcObject=null;$('iePeer').srcObject=null;$('ieIncoming').hidden=true;$('ieShare').hidden=true;}
 async function end(){if(room){try{await api('rooms/'+room+'/signal','POST',{type:'hangup'})}catch{}}clear();room=null;history.replaceState(null,'',location.pathname+location.search);status('Call ended');}
@@ -18,6 +42,6 @@ async function share(){if(!room)return;const url=location.origin+location.pathna
 async function start(video){clear();room=null;seen=0;mode=video?'video':'audio';caller=true;try{status('Preparing microphone…');await capture(video);conn=rtc();media.getTracks().forEach(t=>conn.addTrack(t,media));const response=await api('rooms','POST');room=response.room_id;await conn.setLocalDescription(await conn.createOffer());await ice(conn);await signal('offer',conn.localDescription.sdp);live=true;poll();$('ieShare').hidden=false;await share()}catch(e){clear();room=null;status('Cannot place call: '+e.message)}}
 async function accept(){if(!room)return;$('ieIncoming').hidden=true;try{status('Connecting…');await capture(mode==='video');conn=rtc();media.getTracks().forEach(t=>conn.addTrack(t,media));await api('rooms/'+room+'/join','POST');live=true;poll();status('Answering call…')}catch(e){clear();status('Unable to answer: '+e.message)}}
 $('ieAudio').onclick=()=>start(false);$('ieVideo').onclick=()=>start(true);$('ieEnd').onclick=end;$('ieShare').onclick=share;$('ieAccept').onclick=accept;$('ieDecline').onclick=()=>{clear();room=null;history.replaceState(null,'',location.pathname+location.search);status('Call declined')};
-function incoming(){const hash=location.hash.match(/(?:^#|&)icall=([A-Za-z0-9_-]{16,80})/);if(!hash)return;clear();room=decodeURIComponent(hash[1]);mode=/[&]kind=video(?:&|$)/.test(location.hash)?'video':'audio';caller=false;seen=0;$('ieIncoming').hidden=false;tab.click();status('Invitation received. Tap Accept to request microphone/camera permission.')}
+function incoming(){const hash=location.hash.match(/(?:^#|&)icall=([A-Za-z0-9_-]{16,80})/);if(!hash)return;clear();room=decodeURIComponent(hash[1]);mode=/[&]kind=video(?:&|$)/.test(location.hash)?'video':'audio';caller=false;seen=0;$('ieIncoming').hidden=false;chirp();tab.click();status('Invitation received. Tap Accept to request microphone/camera permission.')}
 window.addEventListener('hashchange',incoming);window.addEventListener('pagehide',clear);incoming();
 })();
