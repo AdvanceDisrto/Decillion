@@ -1,0 +1,7 @@
+cmake_minimum_required(VERSION 3.22.1)
+project(im_under_the_hood LANGUAGES CXX)
+add_library(im_under_the_hood SHARED native_bridge.cpp)
+target_compile_features(im_under_the_hood PRIVATE cxx_std_17)
+target_compile_options(im_under_the_hood PRIVATE -Wall -Wextra -Werror)
+find_library(android-log log REQUIRED)
+target_link_libraries(im_under_the_hood PRIVATE ${android-log})
