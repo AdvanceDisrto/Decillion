@@ -1,5 +1,5 @@
 {
-  "version": "2026.10.15.8",
+  "version": "2026.10.15.9",
   "released_at": "2026-10-15",
-  "notes": "iMobile Fabric CPU GPU NPU TPU APU iSPU iMods iGPTM discovery with WebGPU compute receipts"
+  "notes": "i™ Local LLM model loading and real on-device browser inference routed through Buddy with SHA256 local receipts"
 }
