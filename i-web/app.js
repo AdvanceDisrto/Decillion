@@ -104,6 +104,13 @@ window.iGatewayRequest=async(path,request)=>{
  return response;
 };
 
+window.iMobileCallApi=async(path,method='GET',body=null)=>{
+ if(!token||Date.now()>expires||!cfg.buddyApiUrl)throw Error('Sign in to i™ to place or receive a call.');
+ const url=cfg.buddyApiUrl.replace(/\/$/,'')+'/v1/imobile/live/'+path;
+ const res=await fetch(url,{method,cache:'no-store',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},...(body?{body:JSON.stringify(body)}:{})});
+ if(!res.ok){let problem='HTTP '+res.status;try{const reply=await res.json();problem=reply.detail||problem}catch{}throw Error(problem)}
+ return await res.json();
+};
 window.iSorceryRequest=async(path,method='GET',body=null)=>{
  if(!token||Date.now()>expires||!cfg.buddyApiUrl)throw Error('Sign in to your i™ account first.');
  const url=cfg.buddyApiUrl.replace(/\/$/,'')+'/v1/sorcery/'+path;
