@@ -4,7 +4,7 @@ import unittest
 from unittest.mock import patch,AsyncMock
 from fastapi import HTTPException
 from ai_gateway import (Chat,configured,eligible_providers,selected_tier,rate_check,run_gateway,
-                        safe_provider_data,receipt,status,THREADS,REQUESTS,USAGE)
+                        safe_provider_data,receipt,status,THREADS,REQUESTS,USAGE,agent_loop_demo,invoice_preview,check_auth,issue_key)
 
 class GatewayTests(unittest.TestCase):
  def setUp(self):
@@ -62,4 +62,28 @@ class GatewayTests(unittest.TestCase):
     asyncio.run(run_gateway(Chat(message='hello',preferred_provider='anthropic'),'u'))
    self.assertEqual(ex.exception.status_code,403)
 
+ def test_multiagent_proof_is_real_local_only(self):
+  v=agent_loop_demo('  Validate     this code  ','code')
+  self.assertEqual(len(v['execution']['stages']),3)
+  self.assertEqual(v['execution']['provider_apis_called'],0)
+  self.assertFalse(v['execution']['real_multi_model_exchange'])
+  self.assertFalse(v['receipt']['certified'])
+ def test_proxy_token_issue_requires_verified_primary_auth(self):
+  import jwt
+  secret='A'*40
+  with patch.dict(os.environ,{'I_GATEWAY_TOKEN_SECRET':secret},clear=True):
+   with patch('main.user_id',new_callable=AsyncMock) as auth:
+    auth.return_value=('owner','primary-token')
+    issued=asyncio.run(issue_key('Bearer primary-token'))
+    self.assertTrue(issued['token'].startswith('iat.'))
+    self.assertFalse(issued['mpc'])
+    verified=asyncio.run(check_auth('Bearer '+issued['token']))
+    self.assertEqual(verified,'owner')
+    auth.assert_awaited_once()
+ def test_invoice_preview_never_fakes_charge(self):
+  with patch('main.user_id',new_callable=AsyncMock) as auth:
+   auth.return_value=('owner','primary-token')
+   result=asyncio.run(invoice_preview('Bearer valid'))
+   self.assertEqual(result['verified_charges_usd'],0)
+   self.assertFalse(result['wallet_debit_performed'])
 if __name__=='__main__':unittest.main()
