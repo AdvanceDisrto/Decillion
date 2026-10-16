@@ -2,7 +2,7 @@ name: Buddy Universal API Live Integration
 on:
   push:
     branches: [feature/buddy-receipts-backend-20261015]
-    paths: ['i-api/universal_router.py','i-api/main.py','i-api/test_universal_router.py','i-api/imirror.py','i-api/test_imirror.py','i-api/imodels.py','i-api/local_discovery.py','i-api/test_local_discovery.py','i-api/lifeline.py','i-api/test_lifeline.py','i-api/telecom_orchestra.py','i-api/test_telecom_orchestra.py','i-api/imobile_telecom.py','i-api/test_imobile_telecom.py','i-api/imobile_crossband.py','i-api/test_imobile_crossband.py','i-api/dewi_mesh.py','i-api/test_dewi_mesh.py','.github/workflows/iuniversalapi-live.yml']
+    paths: ['i-api/universal_router.py','i-api/main.py','i-api/test_universal_router.py','i-api/imirror.py','i-api/test_imirror.py','i-api/imodels.py','i-api/local_discovery.py','i-api/test_local_discovery.py','i-api/lifeline.py','i-api/test_lifeline.py','i-api/telecom_orchestra.py','i-api/test_telecom_orchestra.py','i-api/imobile_telecom.py','i-api/test_imobile_telecom.py','i-api/imobile_crossband.py','i-api/test_imobile_crossband.py','i-api/dewi_mesh.py','i-api/test_dewi_mesh.py','i-api/vpu_lab.py','i-api/test_vpu_lab.py','i-api/vpu_grpc_benchmark.py','silicon/icalcula/**','edge/continuity/**','.github/workflows/iuniversalapi-live.yml']
   pull_request:
     paths: ['i-api/universal_router.py','i-api/main.py','i-api/test_universal_router.py']
 jobs:
@@ -17,7 +17,7 @@ jobs:
       - run: python -m pip install -r i-api/requirements.txt
       - run: python -m compileall -q i-api
       - working-directory: i-api
-        run: python -m unittest -v test_universal_router.py test_imirror.py test_local_discovery.py test_lifeline.py test_telecom_orchestra.py test_imobile_telecom.py test_imobile_crossband.py test_dewi_mesh.py
+        run: python -m unittest -v test_universal_router.py test_imirror.py test_local_discovery.py test_lifeline.py test_telecom_orchestra.py test_imobile_telecom.py test_imobile_crossband.py test_dewi_mesh.py test_vpu_lab.py
 
   container-smoke:
     runs-on: ubuntu-latest
@@ -50,3 +50,43 @@ jobs:
       - name: Inspect logs if build failed
         if: failure()
         run: docker logs imobile-ci || true
+
+  silicon-rtl:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Icarus Verilog
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq iverilog
+      - name: Compile standalone decoder RTL
+        run: iverilog -g2012 -Wall -s tb -o /tmp/icalcula_test silicon/icalcula/im_icalcula_decoder.v silicon/icalcula/tb_icalcula_decoder.v
+      - name: Test HDL gates and injected faults
+        run: vvp /tmp/icalcula_test
+
+  continuity-go:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+      - name: Compile and test Go offline queue
+        working-directory: edge/continuity
+        run: |
+          go test -v ./...
+          go build -o /tmp/i-continuity .
+
+  grpc-ipc-benchmark:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install optional gRPC runtime
+        run: python -m pip install 'grpcio>=1.67,<1.81'
+      - name: Benchmark authenticated-response digest over loopback gRPC
+        working-directory: i-api
+        run: python vpu_grpc_benchmark.py
