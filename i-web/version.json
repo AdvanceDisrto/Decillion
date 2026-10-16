@@ -1,5 +1,5 @@
 {
-  "version": "2026.10.15.11",
+  "version": "2026.10.15.12",
   "released_at": "2026-10-15",
-  "notes": "Floating Mini Buddy with lowercase i eyes, draggable companion and touch support on mobile and desktop"
+  "notes": "Mini Buddy precision refinement: smaller footprint, improved mobile action spacing, quiet launch and safer update prompt"
 }
