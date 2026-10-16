@@ -1,5 +1,5 @@
 {
-  "version": "2026.10.16.4",
+  "version": "2026.10.16.5",
   "released_at": "2026-10-16",
-  "notes": "iMobile Cross-Band and Billing simulation: synthetic routing, zero actual charge, receipts unsigned"
+  "notes": "iDeWi mesh graph lab, OpenWrt candidate, offline conflict merge and receipts"
 }
