@@ -15,11 +15,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from imodels import router as model_router, complete as imodel_complete, configured as imodel_configured
 from fabric import router as fabric_router
+from alternative_compute import router as alternative_compute_router
 from omnisync import router as omnisync_router
 
 app = FastAPI(title="i THE ONE Buddy Receipts", version="0.4.0")
 app.include_router(model_router)
 app.include_router(fabric_router)
+app.include_router(alternative_compute_router)
 app.include_router(omnisync_router)
 origin = os.environ.get("PUBLIC_ORIGIN", "").rstrip("/")
 app.add_middleware(CORSMiddleware, allow_origins=[origin] if origin else [], allow_credentials=False, allow_methods=["GET","POST"], allow_headers=["Authorization","Content-Type"])
