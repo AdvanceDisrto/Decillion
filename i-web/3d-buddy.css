@@ -36,3 +36,14 @@ body{background:radial-gradient(circle at 68% 22%,#14555c,transparent 47%),radia
 #updateBanner button{min-width:0;font-size:12px;padding:7px 9px}
 @media(max-width:850px){#buddy>.glass{display:block}#buddy>.glass>.buddy-world{min-height:475px;margin:12px 0}#buddy>.glass>.messages{min-height:130px;max-height:240px}#buddy>.glass>.compose{margin-top:10px}}
 @media(max-width:550px){.wrap{padding-left:9px;padding-right:9px}#buddy>.glass{padding:12px;border-radius:19px}#buddy>.glass>.buddy-world{min-height:440px}#buddy3d img{max-height:73%}#updateBanner.show{bottom:84px;max-width:min(330px,92vw)}nav{overflow-x:auto;justify-content:flex-start}nav button{flex-shrink:0}}
+
+/* Approved-identity safety fallback: old mesh never appears; lowercase i eyes. */
+.buddy-world.buddy-native-mode #buddy3d{display:none!important}
+.buddy-world.buddy-native-mode #buddyCharacter{display:block!important;z-index:3;bottom:82px;left:50%;transform:translateX(-50%) scale(1.2);animation:buddy-arrive 1.1s ease-out both}
+.buddy-world.buddy-native-mode .buddy-eye{position:relative;width:17px;height:25px;border-radius:4px;background:linear-gradient(#b8fff3,#45dfff);box-shadow:0 0 12px #25cfff;animation:none}
+.buddy-world.buddy-native-mode .buddy-eye:before{content:"";position:absolute;width:9px;height:9px;left:4px;top:-13px;background:#65eaff;border-radius:50%;box-shadow:0 0 9px #1fcfff}
+.buddy-world.buddy-native-mode .buddy-eyes{top:29px;left:19px;right:19px}
+.buddy-world.buddy-native-mode .buddy-status{bottom:72px}
+.buddy-world.buddy-native-mode #buddy3d-status{top:auto!important;bottom:64px;right:12px;max-width:200px;opacity:.85}
+@media(max-width:550px){.buddy-world.buddy-native-mode #buddyCharacter{bottom:79px;transform:translateX(-50%) scale(.98)}.buddy-world.buddy-native-mode .buddy-status{display:none}.buddy-world.buddy-native-mode #buddy3d-status{bottom:67px}}
+@media(prefers-reduced-motion:reduce){.buddy-world.buddy-native-mode #buddyCharacter{animation:none}}
