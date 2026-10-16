@@ -35,7 +35,9 @@ public final class MainActivity extends Activity {
             }
             @Override public void onReceivedError(WebView v, WebResourceRequest req,
                     android.webkit.WebResourceError error) {
-                if (req.isForMainFrame()) v.loadDataWithBaseURL(null,\n                    "<!doctype html><html><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><body style=\"background:#072521;color:#d6ffed;font:16px sans-serif;padding:24px\"><h1>i™ Offline</h1><p>The i™ website is unreachable. Local ledger initialization does not mean a mesh connection is active.</p></body></html>",\n                    "text/html", "UTF-8", null);
+                if (req.isForMainFrame()) v.loadDataWithBaseURL(null,
+                    "<!doctype html><html><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><body style=\"background:#072521;color:#d6ffed;font:16px sans-serif;padding:24px\"><h1>i™ Offline</h1><p>The i™ website is unreachable. Local ledger initialization does not mean a mesh connection is active.</p></body></html>",
+                    "text/html", "UTF-8", null);
             }
         });
         WebSettings s = webView.getSettings();
