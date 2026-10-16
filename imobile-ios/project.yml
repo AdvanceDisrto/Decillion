@@ -16,6 +16,8 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: io.innovulis.itheone
         INFOPLIST_KEY_CFBundleDisplayName: "i™ THE ONE"
+        INFOPLIST_KEY_NSMicrophoneUsageDescription: "Allow iMobile microphone access for real audio and video calls."
+        INFOPLIST_KEY_NSCameraUsageDescription: "Allow iMobile camera access when you start or accept a video call."
         INFOPLIST_KEY_NSContactsUsageDescription: "Allow iMobile to show device contacts locally so you can choose people to invite to calls. Contacts are not uploaded."
         INFOPLIST_KEY_NSAppTransportSecurity_NSAllowsArbitraryLoads: NO
         CODE_SIGN_STYLE: Automatic
