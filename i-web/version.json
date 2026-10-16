@@ -1,5 +1,5 @@
 {
-  "version": "2026.10.16.3",
+  "version": "2026.10.16.4",
   "released_at": "2026-10-16",
-  "notes": "iMobile signed packet rehearsal and open telco registry; no unauthorized carrier access"
+  "notes": "iMobile Cross-Band and Billing simulation: synthetic routing, zero actual charge, receipts unsigned"
 }
