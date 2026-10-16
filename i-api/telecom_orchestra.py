@@ -47,6 +47,7 @@ def run_score(req:OrchestraRequest):
     nodes=list(range(req.nodes))
     eliminated=set(rnd.sample(nodes, math.floor(req.nodes*req.dropout_fraction)))
     alive=[n for n in nodes if n not in eliminated]
+    if not alive:raise ValueError('At least one simulated node must survive')
     original=[i%req.nodes for i in range(req.jobs)]
     lost=sum(node in eliminated for node in original)
     rerouted=0
