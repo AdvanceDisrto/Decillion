@@ -17,8 +17,18 @@ class TestUniversalRouter(unittest.TestCase):
         with patch.dict("os.environ",{"IAPI_HF_TOKEN":"test-secret","IAPI_HF_MODEL_ID":"a/b"},clear=True):
             item=asyncio.run(providers())
             hf=next(i for i in item["providers"] if i["id"]=="huggingface")
-            self.assertTrue(hf["configured"])
+            self.assertFalse(hf["configured"])\n            self.assertEqual(hf["status"],"disabled-by-apache-only-policy")
             self.assertNotIn("test-secret",str(item))
+    def test_apache_requires_attested_source_declaration(self):
+        env={"IAPI_APACHE2_BASE_URL":"https://edge.example.com/v1",
+             "IAPI_APACHE2_API_KEY":"example","IAPI_APACHE2_MODEL_ID":"test-model",
+             "IAPI_APACHE2_LICENSE_SPDX":"Apache-2.0",
+             "IAPI_APACHE2_MODEL_REVISION_SHA":"a"*64}
+        with patch.dict("os.environ",env,clear=True):
+            self.assertEqual([p.id for p in active()],["apache2-licensed-llm"])
+            with self.assertRaises(HTTPException) as ex:
+                asyncio.run(infer("Hello",preferred="openai"))
+            self.assertEqual(ex.exception.status_code,503)
     def test_blocks_bad_urls(self):
         for s in ("","http://localhost/v1","https://user:pass@host/v1","javascript:abc"):
             self.assertFalse(safe_url(s))
