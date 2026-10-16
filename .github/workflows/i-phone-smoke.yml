@@ -11,3 +11,4 @@ jobs:
       - run: node --check i-web/device-acceptance.js
       - run: node --check i-web/app.js
       - run: node --check i-web/sorcery.js
+      - run: node --check i-web/imobile-live.js
