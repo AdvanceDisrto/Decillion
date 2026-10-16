@@ -144,6 +144,20 @@ async def run_gateway(req:Chat,uid:str):
  tier=selected_tier(uid)
  await rate_check(uid,tier)
  eligible=eligible_providers(tier,req.preferred_provider)
+ # Operator-configured price ceilings are required before any paid request.
+ # Missing prices fail shut instead of risking unlimited third-party charges.
+ if tier!="free":
+  bounded=[]
+  for p in eligible:
+   try:
+    vin=float(os.getenv("I_GATEWAY_"+p.upper()+"_INPUT_COST_PER_1K",""))
+    vout=float(os.getenv("I_GATEWAY_"+p.upper()+"_OUTPUT_COST_PER_1K",""))
+    valid=0<=vin<100 and 0<=vout<100
+    # Deliberately conservative upper bound rather than actual invoice.
+    projected=(MAX_PROMPT*MAX_MESSAGES*vin+req.max_tokens*vout)/1000
+    if valid and projected<=req.max_cost_usd:bounded.append(p)
+   except (ValueError,OverflowError):pass
+  eligible=bounded
  if not eligible:raise HTTPException(403,"Provider disabled or unavailable under user's server-authorized tier")
  # No user-controlled userId. Sessions cannot be read across principal boundaries.
  thread_id=req.thread_id or uuid.uuid4().hex
