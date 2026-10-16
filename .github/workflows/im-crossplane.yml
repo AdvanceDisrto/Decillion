@@ -1,5 +1,6 @@
 name: iCrossPlane C++ 20k Node Acceptance
 on:
+  workflow_dispatch:
   push:
     branches: [feature/buddy-receipts-backend-20261015]
     paths:
