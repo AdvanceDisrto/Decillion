@@ -1,5 +1,5 @@
 {
-  "version": "2026.10.16.6",
+  "version": "2026.10.16.7",
   "released_at": "2026-10-16",
-  "notes": "Android NDK Native Hybrid Studio with verified GitHub CI debug APK status, native JNI bridge and ledger"
+  "notes": "iCrossPlane: Android Apple C++ ABI, 20k-node software test, audit-only provider registry"
 }
