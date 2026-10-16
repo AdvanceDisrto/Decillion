@@ -1,5 +1,7 @@
 import SwiftUI
 import WebKit
+import Contacts
+import UserNotifications
 
 @main
 struct ITheOneApp: App {
@@ -12,6 +14,7 @@ struct ITheOneApp: App {
 
 struct ITheOneView: View {
     @State private var showStatus = false
+    @State private var showContacts = false
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
             BuddyWebView()
@@ -24,6 +27,24 @@ struct ITheOneView: View {
                     .background(.regularMaterial, in: Capsule())
             }
             .padding()
+            VStack {
+                Spacer()
+                HStack {
+                    Button {
+                        showContacts = true
+                    } label: {
+                        Label("Contacts & Alerts", systemImage: "person.crop.circle.badge.checkmark")
+                            .padding(10)
+                            .background(.regularMaterial, in: Capsule())
+                    }
+                    Spacer()
+                }
+                .padding(.horizontal)
+                .padding(.bottom, 70)
+            }
+        }
+        .sheet(isPresented: $showContacts) {
+            MobileContactsAndAlertsView()
         }
         .sheet(isPresented: $showStatus) {
             SorceryStatusView()
@@ -71,6 +92,77 @@ struct SorceryStatusView: View {
             report = "HTTP \(http.statusCode)\n" + (String(data: data, encoding: .utf8) ?? "Non-UTF8 response")
         } catch {
             report = "Unavailable: \(error.localizedDescription)"
+        }
+    }
+}
+
+struct MobileContactsAndAlertsView: View {
+    @State private var contacts: [String] = []
+    @State private var info = "Contacts are never uploaded. Sync is optional."
+    @State private var alertsInfo = "Notifications not requested."
+
+    var body: some View {
+        NavigationStack {
+            List {
+                Section("Device Contacts") {
+                    Button("Request access & read contacts") {
+                        requestContacts()
+                    }
+                    Text(info).font(.footnote)
+                    ForEach(contacts, id: \.self) { name in
+                        Text(name)
+                    }
+                }
+                Section("iChirp alerts") {
+                    Button("Allow i™ alerts & sounds") {
+                        requestAlerts()
+                    }
+                    Text(alertsInfo).font(.footnote)
+                    Text("Permission alone does not enable incoming call push delivery or background ringing. These require APNs and CallKit.")
+                        .font(.footnote)
+                }
+            }
+            .navigationTitle("iMobile Contacts")
+        }
+    }
+
+    private func requestContacts() {
+        let store = CNContactStore()
+        store.requestAccess(for: .contacts) { granted, error in
+            guard granted else {
+                DispatchQueue.main.async { info = "Contact access not granted." }
+                return
+            }
+            DispatchQueue.global(qos: .userInitiated).async {
+                var names: [String] = []
+                let keys = [CNContactGivenNameKey as CNKeyDescriptor, CNContactFamilyNameKey as CNKeyDescriptor]
+                let request = CNContactFetchRequest(keysToFetch: keys)
+                do {
+                    try store.enumerateContacts(with: request) { contact, stop in
+                        if names.count >= 200 {
+                            stop.pointee = true
+                            return
+                        }
+                        let name = [contact.givenName, contact.familyName]
+                            .filter { !$0.isEmpty }.joined(separator: " ")
+                        if !name.isEmpty { names.append(name) }
+                    }
+                    DispatchQueue.main.async {
+                        contacts = names
+                        info = "Loaded \(names.count) contact names on this iPhone. Not uploaded."
+                    }
+                } catch {
+                    DispatchQueue.main.async { info = "Contact read failed." }
+                }
+            }
+        }
+    }
+
+    private func requestAlerts() {
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { granted, error in
+            DispatchQueue.main.async {
+                alertsInfo = granted ? "i™ notification permission granted. Push transport not yet configured." : "Notifications unavailable or denied."
+            }
         }
     }
 }
