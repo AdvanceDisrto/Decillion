@@ -1,0 +1,33 @@
+name: i Connect Continuity Web Acceptance
+on:
+  push:
+    branches: [deploy/i-the-one-pwa-20261015]
+    paths: ['i-web/continuity-connect.js', 'i-web/index.html', '.github/workflows/i-connect-continuity.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  syntax-and-integration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Parse unified mobile runtime JavaScript
+        run: node --check i-web/continuity-connect.js
+      - name: Verify PWA integration references exist
+        run: |
+          node - <<'NODE'
+          const fs=require('node:fs');
+          const html=fs.readFileSync('i-web/index.html','utf8');
+          for(const file of ['iwifi.js','iexchange.js','sorcery.js','continuity-connect.js']){
+            if(!html.includes('src="'+file+'"'))throw new Error('Missing script '+file);
+            if(!fs.statSync('i-web/'+file).isFile())throw new Error('Missing source '+file);
+          }
+          const code=fs.readFileSync('i-web/continuity-connect.js','utf8');
+          for(const key of ['LOCAL_WORKSPACE_SAVE','HTTPS_BACKEND_PROBE','cross_device_synced:false','signature:null']){
+            if(!code.includes(key))throw new Error('Missing continuity marker: '+key);
+          }
+          console.log('PWA integration and continuity source checks passed. Device operation not verified.');
+          NODE
