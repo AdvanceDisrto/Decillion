@@ -12,6 +12,9 @@ FastAPI routes mounted in `i-api/main.py`:
 - `GET /v1/gateway/invoice-preview`: reports unbilled readiness only, no debits or invoices.
 - `i-web/ai-gateway.js`: UI tab invoking this API through the existing i™ account auth closure (never returns bearer token to widgets).
 
+## Cross-provider prompt privacy
+By default, if a paid cloud adapter fails, the gateway does **not** forward the prompt or conversation history to a second commercial provider. Clients must set `allow_cross_provider_fallback: true` in the authenticated chat request to authorize this cross-provider transfer. An explicitly selected `preferred_provider` never falls back. This setting does not independently authorize sending sensitive data, and enterprise tenant policies must be enforced separately before enabling provider transfers.
+
 ## Authentication
 The API's existing `main.user_id` verifies Supabase bearer JWTs, issuer and signature. In the current implementation, this requires Supabase auth/storage/signing configuration. **Do not trust a request-body user ID or plan.** Server chooses tier from verified UID against configured allowlists. Signed virtual tokens can be used only for `gateway:chat`, expire in 15 minutes, and are scoped to the verified UID.
 
