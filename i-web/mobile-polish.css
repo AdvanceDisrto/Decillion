@@ -1,0 +1,42 @@
+/* i™ Buddy mobile precision pass — safe-area, stacking, touch and responsive composition */
+html{overflow-x:hidden}body{overflow-x:hidden}button,input,select{max-width:100%}
+#buddy>.glass{min-width:0}#buddy>.glass>*{min-width:0}
+.buddy-world{isolation:isolate;position:relative}
+.buddy-intro{pointer-events:none}
+#buddy3d-status{pointer-events:none}
+#buddy3d model-viewer{touch-action:pan-y}
+#updateBanner{box-sizing:border-box}
+@media(max-width:850px){
+ #buddy>.glass{display:flex!important;flex-direction:column;gap:12px;align-items:stretch}
+ #buddy>.glass>b{order:0}
+ #buddy>.glass>.buddy-world{order:1;width:100%;min-width:0;flex:none}
+ #buddy>.glass>.messages{order:2;width:100%;min-width:0;flex:none}
+ #buddy>.glass>.compose{order:3;width:100%;min-width:0}
+ #buddy>.glass>p.fine{order:4}
+ #buddy>.glass>.model-choice{order:5}
+ #buddy>.glass>#iLocalLLM{order:6}
+}
+@media(max-width:550px){
+ .wrap{padding:12px 10px calc(118px + env(safe-area-inset-bottom))}
+ #buddy>.glass{padding:12px;margin:12px 0;overflow:visible}
+ #buddy>.glass>.buddy-world{height:clamp(390px,72svh,560px);min-height:0!important;margin:0;border-radius:20px;overflow:hidden}
+ #buddy3d{inset:82px 0 65px!important}
+ #buddy3d model-viewer{min-height:0!important;height:100%;width:100%;filter:drop-shadow(0 0 18px #21ffcb60)}
+ #buddy3d .buddy3d-poster{height:100%}
+ #buddy3d img{max-height:100%;max-width:95%;width:auto;object-fit:contain}
+ #buddy3d-status{top:80px!important;right:9px!important;max-width:132px;font-size:10px;opacity:.82}
+ .buddy-intro{position:absolute;top:12px;left:12px;right:12px;width:auto!important;max-width:none!important;z-index:6;padding:12px!important}
+ .buddy-intro h2,.buddy-intro h3{font-size:clamp(17px,5vw,24px);margin:4px 0}
+ .buddy-actions{position:absolute;left:9px;right:9px;bottom:10px;z-index:8;display:flex;flex-wrap:nowrap;gap:6px}
+ .buddy-actions button{font-size:clamp(11px,3vw,14px);padding:9px 7px;min-width:0;flex:1}
+ #buddy>.glass>.messages{max-height:200px;min-height:110px!important;padding:9px}
+ #buddy>.glass>.compose{display:flex;gap:7px}
+ #buddy>.glass>.compose input{min-width:0}
+ #updateBanner.show{position:fixed;left:10px!important;right:10px!important;bottom:calc(84px + env(safe-area-inset-bottom))!important;max-width:none!important;width:auto;z-index:40;display:grid;grid-template-columns:1fr auto;gap:6px;padding:10px}
+ #updateBanner #updateState{grid-column:1 / -1}
+ #updateBanner button{font-size:12px;padding:8px 10px}
+ nav{z-index:35;padding:8px 8px max(9px,env(safe-area-inset-bottom));scrollbar-width:none}
+ nav::-webkit-scrollbar{display:none}
+ nav button{min-width:unset;white-space:nowrap}
+}
+@media(max-width:360px){.buddy-actions button{font-size:11px;padding:8px 4px}#buddy>.glass>.buddy-world{height:405px}}
