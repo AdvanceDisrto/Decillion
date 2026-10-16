@@ -53,8 +53,12 @@ struct ITheOneView: View {
 }
 
 struct BuddyWebView: UIViewRepresentable {
+    func makeCoordinator() -> Coordinator { Coordinator() }
     func makeUIView(context: Context) -> WKWebView {
-        let view = WKWebView()
+        let configuration = WKWebViewConfiguration()
+        configuration.allowsInlineMediaPlayback = true
+        let view = WKWebView(frame: .zero, configuration: configuration)
+        view.uiDelegate = context.coordinator
         view.isOpaque = false
         view.backgroundColor = UIColor(red: 0.02, green: 0.12, blue: 0.12, alpha: 1)
         view.allowsBackForwardNavigationGestures = true
@@ -62,6 +66,18 @@ struct BuddyWebView: UIViewRepresentable {
         return view
     }
     func updateUIView(_ uiView: WKWebView, context: Context) {}
+
+    final class Coordinator: NSObject, WKUIDelegate {
+        @available(iOS 15.0, *)
+        func webView(_ webView: WKWebView,
+                     requestMediaCapturePermissionFor origin: WKSecurityOrigin,
+                     initiatedByFrame frame: WKFrameInfo,
+                     type: WKMediaCaptureType,
+                     decisionHandler: @escaping (WKPermissionDecision) -> Void) {
+            // Let iOS and WebKit request camera/microphone consent, never auto-grant.
+            decisionHandler(.prompt)
+        }
+    }
 }
 
 struct SorceryStatusView: View {
