@@ -51,6 +51,7 @@ class Chat(BaseModel):
  max_tokens:int=Field(default=512,ge=1,le=MAX_RESPONSE_TOKENS)
  max_cost_usd:float=Field(default=1.00,ge=0,le=100)
  preferred_provider:str|None=Field(default=None,max_length=32)
+ allow_cross_provider_fallback:bool=False
  stream:bool=False
 
 def token_digest(secret:str, token:str)->str:
@@ -204,7 +205,9 @@ async def run_gateway(req:Chat,uid:str):
    provider_used=target;break
   except (HTTPException,httpx.HTTPError,ValueError) as e:
    last_error=e
-   if req.preferred_provider:break
+   # Never disclose a user's prompt to a second commercial provider unless
+   # the request explicitly opts in to cross-provider transfer.
+   if req.preferred_provider or (target!="apache2-licensed-llm" and not req.allow_cross_provider_fallback):break
  if not actual:raise HTTPException(503,"No eligible model completed the request")
  # Estimate is not a charge; require trusted current price feed + provider usage to bill.
  inp,out=actual["tokens_in"],actual["tokens_out"]
@@ -235,7 +238,8 @@ async def status():
    "provider_configured":configured(),"provider_keys_exposed":False,
    "free_route":"apache2-licensed-llm only","paid_authorization":"server-issued user allowlist",
    "persistent_threads":False,"wallet_billing":False,"mpc_key_sharding":False,
-   "real_ledger_anchor":False,"provider_license_certified":False}
+   "real_ledger_anchor":False,"provider_license_certified":False,
+   "cross_provider_fallback_default":False}
 
 @router.post("/chat")
 async def chat(body:Chat,authorization:str=Header(default="")):
