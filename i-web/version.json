@@ -1,5 +1,5 @@
 {
-  "version": "2026.10.15.9",
+  "version": "2026.10.15.10",
   "released_at": "2026-10-15",
-  "notes": "i™ Local LLM model loading and real on-device browser inference routed through Buddy with SHA256 local receipts"
+  "notes": "Buddy iPhone responsive precision layout, fixed overlapping 3D model, controls and update prompt; improved AI onboarding"
 }
