@@ -1,0 +1,5 @@
+/* Removed rejected default avatar; keep interactive controls unobstructed. */
+#buddyCharacter,#buddy3d,#buddy3d-status{display:none!important}
+.buddy-world:before{content:'i';position:absolute;inset:12% 20% 30%;display:grid;place-items:center;font-size:clamp(80px,17vw,160px);font-weight:900;color:#a0ffe3;text-shadow:0 0 45px #45ffc4,0 0 90px #139a8b;pointer-events:none}
+#buddy .buddy-actions{z-index:9}
+#directGlass{scroll-margin-top:24px}
