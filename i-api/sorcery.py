@@ -12,7 +12,9 @@ REF="feature/buddy-receipts-backend-20261015"
 WORKFLOWS={
  "android": "imobile-android-apk.yml",
  "ios-core": "im-crossplane.yml",
- "backend-tests": "iuniversalapi-live.yml"
+ "backend-tests": "iuniversalapi-live.yml",
+ "ios-app": "imobile-ios-app.yml",
+ "powershell": "i-sorcery-powershell.yml"
 }
 def allowed(uid):
  return uid in set(filter(None,(x.strip() for x in os.getenv("I_SORCERY_OPERATOR_UIDS","").split(","))))
@@ -30,7 +32,7 @@ async def status(authorization:str=Header(default="")):
  await principal(authorization)
  return {"github_configured":bool(os.getenv("I_SORCERY_GITHUB_TOKEN")),
          "render_configured":bool(os.getenv("I_SORCERY_RENDER_API_KEY")),
-         "workflows":list(WORKFLOWS),"arbitrary_shell_enabled":False,
+         "workflows":list(WORKFLOWS),"arbitrary_shell_enabled":False,"reviewed_powershell_in_ephemeral_ci":True,
          "ios_target":"iOS static library and Swift module; not signed IPA",
          "android_target":"unsigned-for-distribution debug APK"}
 @router.get("/github/runs")
