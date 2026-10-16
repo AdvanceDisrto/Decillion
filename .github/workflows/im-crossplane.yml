@@ -1,0 +1,35 @@
+name: iCrossPlane C++ 20k Node Acceptance
+on:
+  push:
+    branches: [feature/buddy-receipts-backend-20261015]
+    paths:
+      - 'crossplane/**'
+      - '.github/workflows/im-crossplane.yml'
+  pull_request:
+    paths:
+      - 'crossplane/**'
+      - '.github/workflows/im-crossplane.yml'
+jobs:
+  linux-compiler:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: C++17 compiler and CMake configure
+        run: cmake -S crossplane -B /tmp/iscrossplane -DCMAKE_BUILD_TYPE=Release
+      - name: Build shared i™ C++ core
+        run: cmake --build /tmp/iscrossplane --parallel 2
+      - name: Run synthetic 20k mixed-node test and SHA-256 vector
+        run: ctest --test-dir /tmp/iscrossplane --output-on-failure
+  apple-compiler:
+    runs-on: macos-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compile same C++ core with Apple Clang
+        run: |
+          cmake -S crossplane -B /tmp/iscrossplane-mac -DCMAKE_BUILD_TYPE=Release
+          cmake --build /tmp/iscrossplane-mac --parallel 2
+          ctest --test-dir /tmp/iscrossplane-mac --output-on-failure
+      - name: Verify iOS SDK visibility (not iOS build)
+        run: xcrun --sdk iphoneos --show-sdk-path
