@@ -94,4 +94,14 @@ window.buddyRemote=async(q)=>{
   return typeof data.answer==='string'?data.answer:null
  }catch{return null}
 };
+window.iGatewayRequest=async(path,request)=>{
+ if(!token||Date.now()>expires||!cfg.buddyApiUrl)throw Error('Sign in to your i™ account in Community first.');
+ const response=await fetch(cfg.buddyApiUrl.replace(/\\/$/,'')+'/v1/gateway/'+path,{
+  method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},
+  body:JSON.stringify(request)});
+ if(!response.ok){let detail='';try{const e=await response.json();detail=e.detail||''}catch{}
+   throw Error(detail||'Gateway HTTP '+response.status)}
+ return response;
+};
+
 })();
