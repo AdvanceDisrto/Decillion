@@ -2,7 +2,7 @@ name: Buddy Universal API Live Integration
 on:
   push:
     branches: [feature/buddy-receipts-backend-20261015]
-    paths: ['i-api/universal_router.py','i-api/main.py','i-api/test_universal_router.py','i-api/imirror.py','i-api/test_imirror.py','i-api/imodels.py','i-api/local_discovery.py','i-api/test_local_discovery.py','i-api/lifeline.py','i-api/test_lifeline.py','i-api/telecom_orchestra.py','i-api/test_telecom_orchestra.py','i-api/imobile_telecom.py','i-api/test_imobile_telecom.py','i-api/imobile_crossband.py','i-api/test_imobile_crossband.py','.github/workflows/iuniversalapi-live.yml']
+    paths: ['i-api/universal_router.py','i-api/main.py','i-api/test_universal_router.py','i-api/imirror.py','i-api/test_imirror.py','i-api/imodels.py','i-api/local_discovery.py','i-api/test_local_discovery.py','i-api/lifeline.py','i-api/test_lifeline.py','i-api/telecom_orchestra.py','i-api/test_telecom_orchestra.py','i-api/imobile_telecom.py','i-api/test_imobile_telecom.py','i-api/imobile_crossband.py','i-api/test_imobile_crossband.py','i-api/dewi_mesh.py','i-api/test_dewi_mesh.py','.github/workflows/iuniversalapi-live.yml']
   pull_request:
     paths: ['i-api/universal_router.py','i-api/main.py','i-api/test_universal_router.py']
 jobs:
