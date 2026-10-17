@@ -9,6 +9,7 @@ import json
 import os
 import time
 from pathlib import Path
+from ice_security import IceStore
 from fastapi import FastAPI, Header, HTTPException
 from pydantic import BaseModel, Field
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey, Ed25519PublicKey
@@ -89,8 +90,51 @@ def health():
     return {"status":"ok","issuer_configured":bool(os.environ.get("ICE_ISSUER_PRIVATE_KEY_B64")),
             "operator_auth_configured":len(os.environ.get("ICE_OPERATOR_TOKEN",""))>=32,
             "trusted_witness_count":len(keyring()),"standard":STANDARD}
+def store():
+    path=os.environ.get("ICE_AUDIT_DB_PATH","").strip()
+    if not path:raise HTTPException(503,"Persistent audit store not configured")
+    return IceStore(path)
+def cert_id(certificate):
+    return hashlib.sha256(canonical(certificate["payload"])).hexdigest()
+def verify_current(certificate,public_key,db):
+    return verify_certificate(certificate,public_key) and db.integrity() and not db.is_revoked(cert_id(certificate))
+class CertificationRequest(BaseModel):
+    nonce:str=Field(min_length=20,max_length=128)
+    package:Package
+class RevocationRequest(BaseModel):
+    cert_id:str=Field(pattern=r"^[a-f0-9]{64}$")
+    reason:str=Field(min_length=1,max_length=250)
+class ValidationRequest(BaseModel):
+    certificate:dict
 @app.post("/certify")
-def request_certificate(package:Package,authorization:str=Header(default="")):
+def request_certificate(request:CertificationRequest,authorization:str=Header(default="")):
     auth(authorization)
-    try:return certify(package,keyring(),issuer_key())
-    except (ValueError,RuntimeError) as ex:raise HTTPException(503,"Issuer or witness configuration unavailable") from ex
+    try:
+        db=store()
+        if not db.integrity():raise HTTPException(503,"Audit chain integrity failed")
+        result=certify(request.package,keyring(),issuer_key())
+        if result.get("certificate"):result["cert_id"]=cert_id(result["certificate"])
+        digest=hashlib.sha256(canonical(request.package.model_dump())).hexdigest()
+        db.record_once(request.nonce,digest,result)
+        return result
+    except ValueError as ex:raise HTTPException(409,str(ex)[:180]) from ex
+    except RuntimeError as ex:raise HTTPException(503,"ICE custody or audit unavailable") from ex
+@app.post("/revoke")
+def revoke(request:RevocationRequest,authorization:str=Header(default="")):
+    auth(authorization)
+    try:
+        db=store()
+        db.revoke(request.cert_id,request.reason)
+        return {"revoked":True,"cert_id":request.cert_id,"audit_head":db.head()}
+    except ValueError as ex:raise HTTPException(409,str(ex)[:180]) from ex
+    except RuntimeError as ex:raise HTTPException(503,"Audit unavailable") from ex
+@app.post("/validate")
+def validate(request:ValidationRequest):
+    public_key=os.environ.get("ICE_ISSUER_PUBLIC_KEY_B64","")
+    if not public_key:raise HTTPException(503,"Issuer public key unavailable")
+    db=store()
+    cert=request.certificate
+    return {"signature_valid":verify_certificate(cert,public_key),
+            "currently_valid":verify_current(cert,public_key,db),
+            "certificate_id":cert_id(cert) if isinstance(cert.get("payload"),dict) else None,
+            "audit_head":db.head(),"scope":"evidence integrity only; not factual truth"}
