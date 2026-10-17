@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
   push:
     branches: [feature/buddy-receipts-backend-20261015]
-    paths: ['i-api/sorcery.py','i-api/test_sorcery.py','i-api/ai_gateway.py','i-api/test_ai_gateway.py','i-api/universal_router.py','i-api/main.py','i-api/test_universal_router.py','i-api/imirror.py','i-api/test_imirror.py','i-api/imodels.py','i-api/local_discovery.py','i-api/test_local_discovery.py','i-api/lifeline.py','i-api/test_lifeline.py','i-api/telecom_orchestra.py','i-api/test_telecom_orchestra.py','i-api/imobile_telecom.py','i-api/test_imobile_telecom.py','i-api/imobile_live_signaling.py','i-api/test_imobile_live_signaling.py','i-api/imobile_crossband.py','i-api/test_imobile_crossband.py','i-api/dewi_mesh.py','i-api/test_dewi_mesh.py','i-api/crossplane_audit.py','i-api/test_crossplane_audit.py','i-api/vpu_lab.py','i-api/test_vpu_lab.py','i-api/vpu_grpc_benchmark.py','silicon/icalcula/**','edge/continuity/**','.github/workflows/iuniversalapi-live.yml']
+    paths: ['i-api/sorcery.py','i-api/test_sorcery.py','i-api/ai_gateway.py','i-api/test_ai_gateway.py','i-api/universal_router.py','i-api/main.py','i-api/vcp_live.py','i-api/test_vcp_live.py','i-api/test_universal_router.py','i-api/imirror.py','i-api/test_imirror.py','i-api/imodels.py','i-api/local_discovery.py','i-api/test_local_discovery.py','i-api/lifeline.py','i-api/test_lifeline.py','i-api/telecom_orchestra.py','i-api/test_telecom_orchestra.py','i-api/imobile_telecom.py','i-api/test_imobile_telecom.py','i-api/imobile_live_signaling.py','i-api/test_imobile_live_signaling.py','i-api/imobile_crossband.py','i-api/test_imobile_crossband.py','i-api/dewi_mesh.py','i-api/test_dewi_mesh.py','i-api/crossplane_audit.py','i-api/test_crossplane_audit.py','i-api/vpu_lab.py','i-api/test_vpu_lab.py','i-api/vpu_grpc_benchmark.py','silicon/icalcula/**','edge/continuity/**','.github/workflows/iuniversalapi-live.yml']
   pull_request:
     paths: ['i-api/universal_router.py','i-api/main.py','i-api/test_universal_router.py']
 jobs:
@@ -18,7 +18,7 @@ jobs:
       - run: python -m pip install -r i-api/requirements.txt
       - run: python -m compileall -q i-api
       - working-directory: i-api
-        run: python -m unittest -v test_universal_router.py test_imirror.py test_local_discovery.py test_lifeline.py test_telecom_orchestra.py test_imobile_telecom.py test_imobile_crossband.py test_dewi_mesh.py test_vpu_lab.py test_crossplane_audit.py test_ai_gateway.py test_sorcery.py test_imobile_live_signaling.py
+        run: python -m unittest -v test_universal_router.py test_imirror.py test_local_discovery.py test_lifeline.py test_telecom_orchestra.py test_imobile_telecom.py test_imobile_crossband.py test_dewi_mesh.py test_vpu_lab.py test_crossplane_audit.py test_ai_gateway.py test_sorcery.py test_imobile_live_signaling.py test_vcp_live.py
 
   container-smoke:
     runs-on: ubuntu-latest
