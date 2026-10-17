@@ -20,7 +20,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 builder.Services.AddAuthorization();
-builder.Services.AddNpgsqlDataSource(connection);
+builder.Services.AddSingleton(NpgsqlDataSource.Create(connection));
 var app = builder.Build();
 app.UseAuthentication();
 app.UseAuthorization();
