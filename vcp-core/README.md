@@ -35,3 +35,32 @@ Spatial Agent: project signed states faithfully; never promote visualization to 
 Evaluator Agent: reproduce tests against known-good and adversarial model outputs.
 
 Claims unsupported by an appropriate method must remain INCONCLUSIVE. There is no fixed notion of 100% truth, universal consensus or instantaneous global synchronization.
+
+## Phone-first Semantic Isometry interface
+
+From the `vcp-core` directory:
+
+```sh
+python mobile_server.py
+```
+
+Open `http://127.0.0.1:8795` **on the same device running the Python server**. This localhost-only implementation intentionally cannot be accessed from another phone across a network.
+
+The **Check** action uses a finite curated evidence registry (currently Mars moon count and Napoleon death year) without any model or external network request. It returns `REFERENCE_CONSISTENT`, `REFERENCE_CONTRADICTED`, or `INCONCLUSIVE`, **never CERTIFIED**.
+
+To enable **Ask model**, provide server-side environment variables, never paste an API key into the page:
+
+```sh
+export VCP_MODEL_BASE_URL="https://openrouter.ai/api/v1"
+export VCP_MODEL_API_KEY="<private-provider-key>"
+export VCP_ALLOWED_MODELS="<authorized-exact-model-id>"
+python mobile_server.py
+```
+
+An authorized OpenAI-compatible gateway returns only a **proposed** structured claim. The curated registry then compares the proposition against supported values. A model-generated answer cannot approve itself. No provider calls are made unless `/model` is intentionally requested. Model calls may incur costs.
+
+The HTML canvas illustrates the recorded status; it does not fabricate 70% pass rates or 100% truth. The output may be downloaded as JSON evidence. This HTML is a 2D spatial lattice preview, **not** a hardware hologram or a Three.js 3D scene. The prior standalone 3D MVP is separate.
+
+On iPhone, a-Shell/iSH environment compatibility with this standard-library server depends on app restrictions; if localhost service execution is unsupported there, use a supported Python host. Native iOS background hosting is not implied.
+
+Security: this is a **local development server**. It has no user authentication or rate limits and must not be publicly exposed. A later production gateway needs identity, key custody, per-user quotas, provider domain allowlists, durable auditable provenance and a separate certification authority.
