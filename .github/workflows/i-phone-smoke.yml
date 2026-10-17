@@ -13,3 +13,4 @@ jobs:
       - run: node --check i-web/sorcery.js
       - run: node --check i-web/imobile-live.js
       - run: node --check i-web/imobile-easy-call.js
+      - run: node --check i-web/ichirp-notes.js
