@@ -1,0 +1,19 @@
+name: iMobile Native VCP Client
+on:
+  workflow_dispatch:
+  push:
+    branches: [deploy/i-the-one-pwa-20261015]
+    paths:
+      - 'i-mobile/**'
+      - '.github/workflows/imobile-native-vcp.yml'
+permissions: {contents: read}
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - run: cd i-mobile && npm test
+      - run: cd i-mobile && npm install --no-audit --no-fund
+      - run: cd i-mobile && npx expo config --type public
