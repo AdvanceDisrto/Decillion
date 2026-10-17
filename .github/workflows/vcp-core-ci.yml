@@ -16,5 +16,5 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - run: python -m pip install 'cryptography>=43,<47'
+      - run: python -m pip install 'cryptography>=43,<47' 'fastapi>=0.115,<1'
       - run: cd vcp-core && python -m unittest -v
