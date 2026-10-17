@@ -1,0 +1,22 @@
+{
+  "expo": {
+    "name": "i™ THE ONE",
+    "slug": "i-the-one",
+    "scheme": "itheone",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "ios": {
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSMicrophoneUsageDescription": "Microphone access is optional, only with your permission."
+      }
+    },
+    "android": {
+      "package": "com.innovulis.itheone"
+    },
+    "plugins": [
+      "expo-secure-store"
+    ],
+    "userInterfaceStyle": "dark"
+  }
+}
