@@ -20,4 +20,4 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: sudo apt-get update -qq && sudo apt-get install -y -qq ghdl
-      - run: cd vcp-core/hardware && ghdl -a --std=08 iswh_ingest.vhd
+      - run: cd vcp-core/hardware && ghdl -a --std=08 iswh_ingest.vhd iswh_mesh_gate.vhd tb_iswh_mesh_gate.vhd && ghdl -e --std=08 tb_iswh_mesh_gate && ghdl -r --std=08 tb_iswh_mesh_gate --stop-time=90ns --assert-level=error
