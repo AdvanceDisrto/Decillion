@@ -1,0 +1,39 @@
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: ${PG_DB:?required}
+      POSTGRES_USER: ${PG_USER:?required}
+      POSTGRES_PASSWORD: ${PG_PASSWORD:?required}
+    volumes:
+      - imobile_postgres:/var/lib/postgresql/data
+      - ./schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    networks: [private]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      retries: 12
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0
+    command: start-dev
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KC_ADMIN_USER:?required}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KC_ADMIN_PASSWORD:?required}
+    ports: ["127.0.0.1:8080:8080"]
+    networks: [private]
+  api:
+    build: ./Api
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      OIDC_AUTHORITY: ${OIDC_AUTHORITY:?required}
+      OIDC_AUDIENCE: ${OIDC_AUDIENCE:?required}
+      PG_CONNECTION: Host=postgres;Database=${PG_DB:?required};Username=${PG_USER:?required};Password=${PG_PASSWORD:?required}
+    ports: ["127.0.0.1:8090:8080"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [private]
+networks:
+  private: {}
+volumes:
+  imobile_postgres: {}
