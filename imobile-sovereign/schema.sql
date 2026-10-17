@@ -1,0 +1,2 @@
+CREATE TABLE IF NOT EXISTS call_records (id uuid PRIMARY KEY, owner_sub text NOT NULL, peer_handle text NOT NULL, media_kind text NOT NULL CHECK(media_kind IN ('audio','video')), call_state text NOT NULL CHECK(call_state IN ('invited','ringing','connected','ended','failed')), created_at timestamptz NOT NULL DEFAULT now());
+CREATE INDEX IF NOT EXISTS call_records_owner_time ON call_records(owner_sub,created_at DESC);
