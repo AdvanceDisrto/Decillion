@@ -104,6 +104,14 @@ window.iGatewayRequest=async(path,request)=>{
  return response;
 };
 
+window.iVCPRequest=async(prompt,provider=null)=>{
+ if(!token||Date.now()>expires||!cfg.buddyApiUrl)throw Error('Sign in to Buddy before using live model verification.');
+ const result=await fetch(cfg.buddyApiUrl.replace(/\/$/,'')+'/v1/vcp/assess',{
+  method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},
+  body:JSON.stringify({prompt,provider}),cache:'no-store'});
+ if(!result.ok){let reason='VCP service HTTP '+result.status;try{const data=await result.json();reason=typeof data.detail==='string'?data.detail:reason}catch{}throw Error(reason)}
+ return await result.json();
+};
 window.iMobileCallApi=async(path,method='GET',body=null)=>{
  if(!token||Date.now()>expires||!cfg.buddyApiUrl)throw Error('Sign in to i™ to place or receive a call.');
  const url=cfg.buddyApiUrl.replace(/\/$/,'')+'/v1/imobile/live/'+path;
