@@ -15,3 +15,4 @@ jobs:
       - run: node --check i-web/imobile-easy-call.js
       - run: node --check i-web/ichirp-notes.js
       - run: node --check i-web/vcp-live.js
+      - run: node --check i-web/dashboard-backend.js
