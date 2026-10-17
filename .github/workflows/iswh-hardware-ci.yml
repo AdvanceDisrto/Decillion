@@ -1,0 +1,23 @@
+name: iSWH hardware scaffold verification
+on:
+  workflow_dispatch:
+  push:
+    branches: [feature/buddy-receipts-backend-20261015]
+    paths:
+      - 'vcp-core/hardware/**'
+      - '.github/workflows/iswh-hardware-ci.yml'
+permissions: {contents: read}
+jobs:
+  software-model-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - run: cd vcp-core/hardware && python -m unittest discover -v
+  vhdl-parser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update -qq && sudo apt-get install -y -qq ghdl
+      - run: cd vcp-core/hardware && ghdl -a --std=08 iswh_ingest.vhd
