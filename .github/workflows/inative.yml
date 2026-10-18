@@ -1,0 +1,21 @@
+name: iNative FFI verification
+on:
+  push:
+    paths:
+      - "native/**"
+      - ".github/workflows/inative.yml"
+  pull_request:
+    paths:
+      - "native/**"
+      - ".github/workflows/inative.yml"
+jobs:
+  native:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compile C++ strict
+        run: g++ -std=c++17 -Wall -Wextra -Werror native/engine.cpp native/tests/native_test.cpp -o /tmp/inative-test
+      - name: Execute native test
+        run: /tmp/inative-test
