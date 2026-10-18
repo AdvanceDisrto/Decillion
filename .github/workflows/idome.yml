@@ -1,0 +1,30 @@
+name: iDome scoped verification
+on:
+  pull_request:
+    paths:
+      - "i-api/dome.py"
+      - "tests/test_idome.py"
+      - ".github/workflows/idome.yml"
+  push:
+    paths:
+      - "i-api/dome.py"
+      - "tests/test_idome.py"
+      - ".github/workflows/idome.yml"
+jobs:
+  dome:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - run: python -m pip install fastapi==0.115.12 pydantic pytest ruff
+      - name: Unit tests
+        run: python -m pytest -q tests/test_idome.py
+      - name: Syntax validation
+        run: python -m py_compile i-api/dome.py tests/test_idome.py
