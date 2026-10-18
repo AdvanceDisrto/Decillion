@@ -51,8 +51,11 @@ app.include_router(universal_router)
 app.include_router(ai_gateway_router)
 app.include_router(vcp_live_router)
 app.include_router(generative_seed_router)
-origin = os.environ.get("PUBLIC_ORIGIN", "").rstrip("/")
-app.add_middleware(CORSMiddleware, allow_origins=[origin] if origin else [], allow_credentials=False, allow_methods=["GET","POST"], allow_headers=["Authorization","Content-Type"])
+origin = os.environ.get("PUBLIC_ORIGIN", "").strip().rstrip("/")
+# Explicit allowlist: no wildcard for authenticated requests and no secret-bearing JS.
+extra_origins = [value.strip().rstrip("/") for value in os.environ.get("PUBLIC_ORIGINS", "").split(",") if value.strip()]
+allowed_origins = sorted(set(([origin] if origin else []) + extra_origins))
+app.add_middleware(CORSMiddleware, allow_origins=allowed_origins, allow_credentials=False, allow_methods=["GET","POST"], allow_headers=["Authorization","Content-Type"])
 PROJECT_URL = os.environ.get("SUPABASE_URL", "").rstrip("/")
 ANON_KEY = os.environ.get("SUPABASE_PUBLISHABLE_KEY", "")
 SIGNING_KEY = os.environ.get("RECEIPT_SIGNING_PRIVATE_KEY_PEM", "")
