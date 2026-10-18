@@ -11,6 +11,7 @@ import jwt
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 from fastapi import FastAPI, HTTPException, Header
+from dome import router as dome_router
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from imodels import router as model_router, complete as imodel_complete, configured as imodel_configured
@@ -34,6 +35,7 @@ from universal_router import router as universal_router, infer as universal_infe
 
 app = FastAPI(title="i THE ONE Buddy Receipts", version="0.4.0")
 app.include_router(model_router)
+app.include_router(dome_router)
 app.include_router(fabric_router)
 app.include_router(alternative_compute_router)
 app.include_router(omnisync_router)
@@ -54,7 +56,7 @@ app.include_router(generative_seed_router)
 origin = os.environ.get("PUBLIC_ORIGIN", "").strip().rstrip("/")
 # Explicit allowlist: no wildcard for authenticated requests and no secret-bearing JS.
 extra_origins = [value.strip().rstrip("/") for value in os.environ.get("PUBLIC_ORIGINS", "").split(",") if value.strip()]
-allowed_origins = sorted(set(([origin] if origin else []) + extra_origins))
+allowed_origins = sorted(set(([origin] if origin else []) + extra_origins + ["https://i-the-one-buddy-preview.onrender.com", "https://innovulis.com", "https://www.innovulis.com"]))
 app.add_middleware(CORSMiddleware, allow_origins=allowed_origins, allow_credentials=False, allow_methods=["GET","POST"], allow_headers=["Authorization","Content-Type"])
 PROJECT_URL = os.environ.get("SUPABASE_URL", "").rstrip("/")
 ANON_KEY = os.environ.get("SUPABASE_PUBLISHABLE_KEY", "")
