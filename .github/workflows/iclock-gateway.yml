@@ -1,0 +1,28 @@
+name: iClock gateway verification
+on:
+  pull_request:
+    paths:
+      - 'i-clock-gateway/**'
+      - '.github/workflows/iclock-gateway.yml'
+  push:
+    paths:
+      - 'i-clock-gateway/**'
+      - '.github/workflows/iclock-gateway.yml'
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    strategy:
+      matrix:
+        node: ['20', '22']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - name: JavaScript syntax check
+        run: node --check i-clock-gateway/src/server.mjs && node --check i-clock-gateway/tests/server.test.mjs
+      - name: Unit and HTTP behavior tests
+        working-directory: i-clock-gateway
+        run: npm test
