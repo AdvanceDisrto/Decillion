@@ -1,0 +1,22 @@
+name: Buddy Proof API Review
+on:
+  push:
+    paths:
+      - 'proof-process/**'
+      - '.github/workflows/buddy-proof-api-review.yml'
+  pull_request:
+    paths:
+      - 'proof-process/**'
+      - '.github/workflows/buddy-proof-api-review.yml'
+jobs:
+  compile-and-import:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -r proof-process/requirements-api.txt
+      - run: python -m py_compile proof-process/backend.py
+      - run: PYTHONPATH=proof-process python -c "from backend import app; assert len(app.routes)>=4"
+      - run: PYTHONPATH=proof-process python -c "from fastapi.testclient import TestClient; from backend import app; c=TestClient(app); assert c.get('/health').status_code==200; assert c.post('/v1/proofs/submit',json={}).status_code==401"
