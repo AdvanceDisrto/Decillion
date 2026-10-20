@@ -6,10 +6,11 @@ import os
 import sqlite3
 from pathlib import Path
 
-from cryptography.hazmat.primitives.asymmetric.ed25519 import (
-    Ed25519PrivateKey, Ed25519PublicKey,
-)
 from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric.ed25519 import (
+    Ed25519PrivateKey,
+    Ed25519PublicKey,
+)
 from fastapi import Depends, FastAPI, Header, HTTPException
 from pydantic import BaseModel
 
