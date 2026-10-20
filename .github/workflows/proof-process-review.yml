@@ -1,0 +1,22 @@
+name: Proof of Process Review
+on:
+  push:
+    paths:
+      - 'proof-process/**'
+      - '.github/workflows/proof-process-review.yml'
+  pull_request:
+    paths:
+      - 'proof-process/**'
+      - '.github/workflows/proof-process-review.yml'
+jobs:
+  python-reference:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile
+        run: python -m py_compile proof-process/contract_fixture.py
+      - name: Test
+        run: python -m unittest discover -s proof-process -p 'contract_fixture.py' -v
