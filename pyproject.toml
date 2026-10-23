@@ -31,6 +31,7 @@ decillion-accelerators = "matrix.accelerator:main"
 packages = ["src/decillion", "src/vault", "src/telepath", "src/matrix"]
 
 [tool.pytest.ini_options]
+pythonpath = ["."]
 testpaths = ["tests"]
 addopts = "-q --disable-warnings --strict-markers"
 
