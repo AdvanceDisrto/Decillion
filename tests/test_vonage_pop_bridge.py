@@ -1,5 +1,11 @@
+import sys
+from pathlib import Path
+
 from cryptography.hazmat.primitives.asymmetric import ed25519
-from proof_process.vonage_pop_bridge import (
+
+sys.path.insert(0, str(Path(__file__).parents[1] / "proof-process"))
+
+from vonage_pop_bridge import (
     mint_signed_receipt,
     verify_vonage_receipt,
 )
