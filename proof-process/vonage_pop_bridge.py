@@ -14,7 +14,7 @@ from __future__ import annotations
 import hashlib
 import json
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from cryptography.hazmat.primitives import serialization
@@ -35,7 +35,7 @@ def sha256_hex(data: bytes) -> str:
 
 
 def utc_now() -> str:
-    return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+    return datetime.now(UTC).isoformat().replace("+00:00", "Z")
 
 
 def mint_signed_receipt(
@@ -78,9 +78,18 @@ def mint_signed_receipt(
             "that any external blockchain anchor exists",
         ],
         "disclosures": [
-            "this receipt binds the recorded Vonage response fields, not an unrecorded HTTP byte stream",
-            "delivery status must arrive through a verified Vonage webhook before it is treated as provider evidence",
-            "the receipt signature uses a deterministic JSON serialization profile; RFC 8785 JCS is not claimed",
+            (
+                "this receipt binds the recorded Vonage response fields, "
+                "not an unrecorded HTTP byte stream"
+            ),
+            (
+                "delivery status must arrive through a verified Vonage webhook "
+                "before it is treated as provider evidence"
+            ),
+            (
+                "the receipt signature uses a deterministic JSON serialization profile; "
+                "RFC 8785 JCS is not claimed"
+            ),
         ],
         "genesis_authority": None,
     }
