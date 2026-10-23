@@ -82,7 +82,10 @@ def build_receipt(iterations: int, elapsed: float, digest: str) -> dict:
             "that a Bitcoin or other external anchor exists",
         ],
         "disclosures": [
-            "provider fields remain NOT_CONNECTED unless a real authenticated integration is executed",
+            (
+                "provider fields remain NOT_CONNECTED unless a real authenticated "
+                "integration is executed"
+            ),
             "this benchmark is not a simulation of 10^45 physical operations",
             "10^45 is a target scale, not an executed count",
         ],
