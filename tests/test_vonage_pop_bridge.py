@@ -1,5 +1,4 @@
 from cryptography.hazmat.primitives.asymmetric import ed25519
-
 from proof_process.vonage_pop_bridge import (
     mint_signed_receipt,
     verify_vonage_receipt,
