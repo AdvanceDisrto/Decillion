@@ -28,7 +28,7 @@ decillion-telepath = "telepath.cli:main"
 decillion-accelerators = "matrix.accelerator:main"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/decillion", "src/vault", "src/telepath", "src/matrix"]
+packages = ["src/decillion", "src/vault", "src/telepath", "src/matrix", "src/proof_process"]
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
